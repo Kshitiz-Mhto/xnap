@@ -5,7 +5,7 @@ MAIN_FILE = ./main.go
 INSTALL_DIR = $(GOBIN) # Defaults to $HOME/go/bin if GOBIN is unset
 
 # Targets
-.PHONY: build test run install clean
+.PHONY: build test run i/home/ibergx00/gonstall clean
 
 build:
 	@echo "Building the binary..."
