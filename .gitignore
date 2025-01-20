@@ -1,0 +1,6 @@
+bin
+.idea
+.vscode
+.env
+.envrc
+.cobra.yaml
