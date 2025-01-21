@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"runtime"
 
-	common "github.com/Kshitiz-Mhto/dsync/utility"
+	"github.com/Kshitiz-Mhto/dsync/utility/common"
 	"github.com/spf13/cobra"
 )
 
