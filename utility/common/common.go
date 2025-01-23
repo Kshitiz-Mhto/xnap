@@ -12,7 +12,7 @@ var (
 	// OutputFormat for custom format output
 	OutputFormat string
 	// RegionSet picks the region to connect to, if you use this option it will use it over the default region
-	RegionSet string = "Asia/Est"
+	RegionSet string = "Localhost/127.0.0.1"
 
 	DefaultYes bool
 	// PrettySet : Prints the json output in pretty format

@@ -271,13 +271,10 @@ func prettyprint(b []byte) ([]byte, error) {
 func (ow *OutputWriter) FinishAndPrintOutput() {
 	ow.finishExistingLine()
 	if len(ow.Values) == 0 {
-		var region string
 		if common.RegionSet != "" {
-			region = common.RegionSet
-		} else {
-			// region = config.Current.Meta.DefaultRegion
+			fmt.Fprintf(os.Stderr, "No resources found in %s.\n", common.RegionSet)
 		}
-		fmt.Fprintf(os.Stderr, "No resources found in region %s. For a list of regions use the command 'civo region ls'\n", region)
+		fmt.Fprint(os.Stderr, "No resources found.\n")
 	} else {
 		switch common.OutputFormat {
 		case "json":
