@@ -4,3 +4,4 @@ bin
 .env
 .envrc
 .cobra.yaml
+.postgres
