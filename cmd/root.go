@@ -17,8 +17,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package cmd
 
 import (
+	"fmt"
 	"os"
 
+	"github.com/Kshitiz-Mhto/dsync/cmd/database"
 	"github.com/spf13/cobra"
 )
 
@@ -35,6 +37,7 @@ between diverse systems, including databases, cloud storage, and local file syst
 		if version {
 			versionCMD.Run(cmd, args)
 		} else {
+			fmt.Print(logo)
 			cmd.Help()
 		}
 	},
@@ -51,6 +54,8 @@ func Execute() {
 
 func init() {
 	// Here you will define your flags and configuration settings.
+
+	rootCmd.AddCommand(database.DBCmd)
 
 	rootCmd.Flags().BoolVarP(&version, "version", "v", false, "Print the version of the CLI")
 }
