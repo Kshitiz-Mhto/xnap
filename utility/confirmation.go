@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 	"strings"
+
+	"gorm.io/gorm"
 )
 
 // retrieveUserInput is a function that can retrieve user input in form of string. By default,
@@ -72,4 +74,18 @@ func UserAccepts(in io.Reader) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func CloseDBConnection(db *gorm.DB) {
+	// Ensure the connection is closed when the function exits
+	DB, err := db.DB() // Get the underlying *sql.DB instance
+	if err != nil {
+		Error("Failed to get SQL DB instance: %v", err)
+		os.Exit(1)
+	}
+	defer func() {
+		if err := DB.Close(); err != nil {
+			Error("Failed to close database connection: %v", err)
+		}
+	}()
 }
