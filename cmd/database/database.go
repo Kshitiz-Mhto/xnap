@@ -19,6 +19,12 @@ var (
 	POSTGRES_DB_PORT     string = config.Envs.POSTGRES_DB_PORT
 )
 
+var (
+	dbName  string
+	dbOwner string
+	dbType  string
+)
+
 // DBCmd is the root command for the db subcommand
 var DBCmd = &cobra.Command{
 	Use:     "database",
@@ -40,6 +46,7 @@ func init() {
 	DBCmd.AddCommand(dbCreateCmd)
 
 	dbListCmd.Flags().StringVarP(&dbType, "type", "t", "all", "Filter by database type (all/mysql/postgres)")
-	dbCreateCmd.Flags().StringVarP(&dbsType, "type", "t", "mysql", "create database type MySQL")
+	dbCreateCmd.Flags().StringVarP(&dbType, "type", "t", "mysql", "create database type MySQL")
 	dbCreateCmd.Flags().StringVarP(&dbOwner, "owner", "o", "postgres", "specify owner only for postgres database")
+
 }

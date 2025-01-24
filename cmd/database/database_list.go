@@ -12,8 +12,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var dbType string
-
 var dbListCmd = &cobra.Command{
 	Use:     "ls",
 	Aliases: []string{"list", "all"},

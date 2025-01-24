@@ -11,11 +11,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var (
-	dbName  string
-	dbOwner string
-	dbsType string
-)
 var dbCreateCmd = &cobra.Command{
 	Use:     "create",
 	Aliases: []string{"new", "add"},
@@ -27,7 +22,7 @@ var dbCreateCmd = &cobra.Command{
 
 func dbCreation(cmd *cobra.Command, args []string) {
 	dbName = args[0]
-	switch dbsType {
+	switch dbType {
 	case "mysql":
 		createMySQLDatabase()
 	case "postgres", "psql":
