@@ -44,9 +44,12 @@ func init() {
 
 	DBCmd.AddCommand(dbListCmd)
 	DBCmd.AddCommand(dbCreateCmd)
+	DBCmd.AddCommand(dbDeleteCmd)
 
 	dbListCmd.Flags().StringVarP(&dbType, "type", "t", "all", "Filter by database type (all/mysql/postgres)")
+
 	dbCreateCmd.Flags().StringVarP(&dbType, "type", "t", "mysql", "create database type MySQL")
 	dbCreateCmd.Flags().StringVarP(&dbOwner, "owner", "o", "postgres", "specify owner only for postgres database")
 
+	dbDeleteCmd.Flags().StringVarP(&dbType, "type", "t", "", "specify the database type for deletion")
 }
