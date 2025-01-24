@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/Kshitiz-Mhto/dsync/utility"
 	"github.com/spf13/cobra"
@@ -23,7 +24,7 @@ var (
 var dbBackupCreateCmd = &cobra.Command{
 	Use:     "create",
 	Aliases: []string{"new", "add"},
-	Example: "dysnc db backup create <db-name> --type <db-type> --name <backup filename> --path <path/to/> --no-data --no-create-info",
+	Example: "dysnc db backup create <db-name> --type <db-type> --name <backup-filename> --path <path/to/> --no-data --no-create-info",
 	Short:   "Create a new database backup",
 	Args:    cobra.ExactArgs(1),
 	Run:     dbCreateDatabaseBackup,
@@ -37,7 +38,8 @@ func dbCreateDatabaseBackup(cmd *cobra.Command, args []string) {
 	noCreateInfo, _ = cmd.Flags().GetBool("no-create-info")
 
 	if backupFileName == "" {
-		backupFileName = fmt.Sprintf("%s_backup.sql", databaseName)
+		// YYYYMMDD_HHMMSS_databaseName_backup.sql
+		backupFileName = fmt.Sprintf("%s_%s_backup.sql", time.Now().Format("20060102_150405"), databaseName)
 	}
 
 	var err error
@@ -121,12 +123,22 @@ func dbCreateMySQLDatabaseBackup() {
 					if val == nil {
 						rowData = append(rowData, "NULL")
 					} else {
-						rowData = append(rowData, fmt.Sprintf("'%v'", val))
+						switch v := val.(type) {
+						case []byte: // Convert byte slices to string
+							rowData = append(rowData, fmt.Sprintf("'%s'", string(v)))
+						case string:
+							rowData = append(rowData, fmt.Sprintf("'%s'", v))
+						case int, int64, float64: // Handle numeric types
+							rowData = append(rowData, fmt.Sprintf("%v", v))
+						default: // Handle other types generically
+							rowData = append(rowData, fmt.Sprintf("'%v'", v))
+						}
 					}
 				}
 				insertQuery := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s);\n", table, strings.Join(columns, ", "), strings.Join(rowData, ", "))
 				backupFile.WriteString(insertQuery)
 			}
+
 			backupFile.WriteString("\n")
 		}
 	}
