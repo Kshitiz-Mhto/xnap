@@ -3,7 +3,20 @@ package database
 import (
 	"errors"
 
+	"github.com/Kshitiz-Mhto/dsync/pkg/config"
 	"github.com/spf13/cobra"
+)
+
+var (
+	MySQL_DB_USER     string = config.Envs.MySQL_DB_USER
+	MySQL_DB_PASSWORD string = config.Envs.MySQL_DB_PASSWORD
+	MySQL_DB_HOST     string = config.Envs.MySQL_DB_HOST
+	MySQL_DB_PORT     string = config.Envs.MySQL_DB_PORT
+
+	POSTGRES_DB_USER     string = config.Envs.POSTGRES_DB_USER
+	POSTGRES_DB_PASSWORD string = config.Envs.POSTGRES_DB_PASSWORD
+	POSTGRES_DB_HOSTOST  string = config.Envs.POSTGRES_DB_HOST
+	POSTGRES_DB_PORT     string = config.Envs.POSTGRES_DB_PORT
 )
 
 // DBCmd is the root command for the db subcommand
@@ -24,7 +37,9 @@ var DBCmd = &cobra.Command{
 func init() {
 
 	DBCmd.AddCommand(dbListCmd)
+	DBCmd.AddCommand(dbCreateCmd)
 
 	dbListCmd.Flags().StringVarP(&dbType, "type", "t", "all", "Filter by database type (all/mysql/postgres)")
-
+	dbCreateCmd.Flags().StringVarP(&dbsType, "type", "t", "mysql", "create database type MySQL")
+	dbCreateCmd.Flags().StringVarP(&dbOwner, "owner", "o", "postgres", "specify owner only for postgres database")
 }
