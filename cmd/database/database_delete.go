@@ -36,7 +36,7 @@ func dbDeletion(cmd *cobra.Command, args []string) {
 	case "postgres", "psql":
 		deletePostgresDatabase()
 	default:
-		utility.Error("UnsuppError: Failed to create database: sql: database is closedorted database type: %s. Use 'all', 'mysql', or 'postgres'.\n", dbType)
+		utility.Error("UnsuppError: Failed to delete database: database is closedorted database type: %s. Use 'mysql', or 'postgres'.", dbType)
 		os.Exit(1)
 	}
 }
@@ -57,7 +57,7 @@ func deleteMySQLDatabase() {
 
 	defer utility.CloseDBConnection(db)
 
-	fmt.Print("Database deleted successfully !!\n")
+	utility.Success("Database deleted successfully !!")
 }
 
 func deletePostgresDatabase() {
@@ -65,7 +65,7 @@ func deletePostgresDatabase() {
 
 	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
 	if err != nil {
-		utility.Error("Failed to connect to PostgreSQL: %s\n", err)
+		utility.Error("Failed to connect to PostgreSQL: %s", err)
 		os.Exit(1)
 	}
 
@@ -76,5 +76,5 @@ func deletePostgresDatabase() {
 	}
 
 	defer utility.CloseDBConnection(db)
-	fmt.Print("Database deleted successfully !!\n")
+	utility.Success("Database deleted successfully !!")
 }

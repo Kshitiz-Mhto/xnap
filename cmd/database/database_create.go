@@ -54,7 +54,7 @@ func createMySQLDatabase() {
 	ow.StartLine()
 	ow.AppendDataWithLabel("mysql_db_name", dbName, "DB_Name")
 	ow.FinishAndPrintOutput()
-	fmt.Print("Database created successfully !!\n")
+	utility.Success("Database created successfully !!")
 }
 
 func createPostgresDatabase() {
@@ -62,7 +62,7 @@ func createPostgresDatabase() {
 
 	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
 	if err != nil {
-		utility.Error("Failed to connect to PostgreSQL: %s\n", err)
+		utility.Error("Failed to connect to PostgreSQL: %s", err)
 		os.Exit(1)
 	}
 
@@ -79,5 +79,5 @@ func createPostgresDatabase() {
 	ow.StartLine()
 	ow.AppendDataWithLabel("pssql_db_name", dbName, "DB_Name")
 	ow.FinishAndPrintOutput()
-	fmt.Print("Database created successfully !!\n")
+	utility.Success("Database created successfully !!")
 }
