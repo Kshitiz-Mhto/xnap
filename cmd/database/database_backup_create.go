@@ -90,6 +90,9 @@ func dbCreateMySQLDatabaseBackup() {
 		os.Exit(1)
 	}
 
+	backupFile.WriteString(fmt.Sprintf("-- Host: %s/%s\n", MySQL_DB_HOST, MySQL_DB_PORT))
+	backupFile.WriteString(fmt.Sprintf("-- Database: %s\n\n", databaseName))
+
 	for _, table := range tables {
 		if !noCreateInfo {
 			// Backup table schema
@@ -171,6 +174,9 @@ func dbCreatePSQLDatabaseBackup() {
 		utility.Error("Error fetching table list: %v", err)
 		os.Exit(1)
 	}
+
+	backupFile.WriteString(fmt.Sprintf("-- Host: %s/%s\n", POSTGRES_DB_HOSTOST, POSTGRES_DB_PORT))
+	backupFile.WriteString(fmt.Sprintf("-- Database: %s\n\n", databaseName))
 
 	for _, table := range tables {
 		if !noCreateInfo {
