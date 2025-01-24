@@ -47,7 +47,7 @@ func createMySQLDatabase() {
 		os.Exit(1)
 	}
 
-	utility.CloseDBConnection(db)
+	defer utility.CloseDBConnection(db)
 
 	ow := utility.NewOutputWriter()
 
@@ -72,7 +72,7 @@ func createPostgresDatabase() {
 		os.Exit(1)
 	}
 
-	utility.CloseDBConnection(db)
+	defer utility.CloseDBConnection(db)
 
 	ow := utility.NewOutputWriter()
 

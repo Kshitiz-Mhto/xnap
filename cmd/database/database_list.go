@@ -53,7 +53,7 @@ func listMySQLDatabases() {
 		utility.Error("Failed to fetch databases: %v", err)
 		os.Exit(1)
 	}
-	utility.CloseDBConnection(db)
+	defer utility.CloseDBConnection(db)
 
 	ow := utility.NewOutputWriter()
 	oi := utility.NewOutputWriter()
@@ -93,7 +93,7 @@ func listPostgresDatabases() {
 		utility.Error("Failed to fetch databases: %v", err)
 		os.Exit(1)
 	}
-	utility.CloseDBConnection(db)
+	defer utility.CloseDBConnection(db)
 
 	ow := utility.NewOutputWriter()
 	oi := utility.NewOutputWriter()

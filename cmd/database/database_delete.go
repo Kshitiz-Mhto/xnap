@@ -55,7 +55,7 @@ func deleteMySQLDatabase() {
 		os.Exit(1)
 	}
 
-	utility.CloseDBConnection(db)
+	defer utility.CloseDBConnection(db)
 
 	fmt.Print("Database deleted successfully !!\n")
 }
@@ -75,6 +75,6 @@ func deletePostgresDatabase() {
 		os.Exit(1)
 	}
 
-	utility.CloseDBConnection(db)
+	defer utility.CloseDBConnection(db)
 	fmt.Print("Database deleted successfully !!\n")
 }
