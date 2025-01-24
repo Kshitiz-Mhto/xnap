@@ -40,13 +40,11 @@ func Warning(msg string, args ...interface{}) {
 	fmt.Fprintf(os.Stderr, "%s: %s\n", color.Yellow.Sprintf("Warning"), fmt.Sprintf(msg, args...))
 }
 
+func Success(msg string, args ...interface{}) {
+	fmt.Fprintf(os.Stderr, "%s: %s\n", color.Green.Sprintf("sucess"), fmt.Sprintf(msg, args...))
+}
+
 // YellowConfirm is the function to handler all delete confirm
 func YellowConfirm(msg string, args ...interface{}) {
 	fmt.Fprintf(os.Stderr, "%s: %s", color.Warn.Sprintf("Warning"), fmt.Sprintf(msg, args...))
-}
-
-// RedConfirm is the function to handler the new version of the Cli
-func RedConfirm(msg string, args ...interface{}) {
-
-	fmt.Fprintf(os.Stderr, "%s: %s", color.Red.Sprintf("IMPORTANT"), fmt.Sprintf(msg, args...))
 }
