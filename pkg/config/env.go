@@ -30,7 +30,7 @@ func initConfig() Config {
 		POSTGRES_DB_USER:     getEnv("POSTGRES_DB_USER", "root"),
 		POSTGRES_DB_PASSWORD: getEnv("POSTGRES_DB_PASSWORD", ""),
 		POSTGRES_DB_HOST:     getEnv("POSTGRES_DB_HOST", "http://localhost"),
-		POSTGRES_DB_PORT:     getEnv("POSTGRES_DB_PORT", "3360"),
+		POSTGRES_DB_PORT:     getEnv("POSTGRES_DB_PORT", "5432"),
 	}
 }
 
