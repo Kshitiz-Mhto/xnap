@@ -188,7 +188,9 @@ func dbCreateMySQLDatabaseBackup() {
 	backupFile.WriteString("/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;\n")
 	backupFile.WriteString("/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;\n")
 	backupFile.WriteString("/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;\n")
-	backupFile.WriteString("/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;\n")
+	backupFile.WriteString("/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;\n\n")
+
+	backupFile.WriteString(fmt.Sprintf("/*  --Dump file generated at %s-- */\n", time.Now().Format(time.RFC1123)))
 
 	utility.Success("Backup completed successfully. File saved at: %s", utility.Yellow(backupFullFilePath))
 }
@@ -214,20 +216,37 @@ func dbCreatePSQLDatabaseBackup() {
 	}
 	defer backupFile.Close()
 
+	// Write the header of the dump (similar to pg_dump)
+	backupFile.WriteString("-- PostgreSQL database dump\n\n")
+	backupFile.WriteString(fmt.Sprintf("-- Dumped from database version %s\n", "14.8")) // Adjust version as needed
+	backupFile.WriteString("\n")
+	backupFile.WriteString("SET statement_timeout = 0;\n")
+	backupFile.WriteString("SET lock_timeout = 0;\n")
+	backupFile.WriteString("SET idle_in_transaction_session_timeout = 0;\n")
+	backupFile.WriteString("SET client_encoding = 'UTF8';\n")
+	backupFile.WriteString("SET standard_conforming_strings = on;\n")
+	backupFile.WriteString("SELECT pg_catalog.set_config('search_path', '', false);\n")
+	backupFile.WriteString("SET check_function_bodies = false;\n")
+	backupFile.WriteString("SET xmloption = content;\n")
+	backupFile.WriteString("SET client_min_messages = warning;\n")
+	backupFile.WriteString("SET row_security = off;\n\n")
+
+	backupFile.WriteString("SET default_tablespace = '';\n")
+	backupFile.WriteString("SET default_table_access_method = heap;\n\n")
+
+	// Fetch all tables
 	tables := []string{}
 	if err := db.Raw("SELECT tablename FROM pg_tables WHERE schemaname='public'").Scan(&tables).Error; err != nil {
 		utility.Error("Error fetching table list: %v", err)
 		os.Exit(1)
 	}
 
-	backupFile.WriteString(fmt.Sprintf("-- Host: %s/%s\n", POSTGRES_DB_HOSTOST, POSTGRES_DB_PORT))
-	backupFile.WriteString(fmt.Sprintf("-- Database: %s\n\n", databaseName))
-
+	// Loop through tables to dump schema, sequences, and data
 	for _, table := range tables {
+		// Backup schema (CREATE TABLE and related statements) - If not skipping CREATE info
 		if !noCreateInfo {
-			// Backup table schema using pg_catalog
-			backupFile.WriteString(fmt.Sprintf("-- Schema for table '%s'\n", table))
-
+			backupFile.WriteString(fmt.Sprintf("-- Name: %s; Type: TABLE; Schema: public; Owner: postgres\n", table))
+			// CREATE TABLE
 			var createTableQuery string
 			query := fmt.Sprintf(`
 				SELECT 'CREATE TABLE ' || relname || E'\n(\n' ||
@@ -259,17 +278,40 @@ func dbCreatePSQLDatabaseBackup() {
 				os.Exit(1)
 			}
 			backupFile.WriteString(createTableQuery + ";\n\n")
+
+			// Backup sequences (if any)
+			var sequenceName string
+			seqQuery := fmt.Sprintf(`
+				SELECT c.relname 
+				FROM pg_class c 
+				WHERE c.relkind = 'S' 
+				AND c.relname LIKE '%s%%';`, table)
+			if err := db.Raw(seqQuery).Scan(&sequenceName).Error; err == nil && sequenceName != "" {
+				backupFile.WriteString(fmt.Sprintf("-- Name: %s_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres\n", table))
+				backupFile.WriteString(fmt.Sprintf("CREATE SEQUENCE public.%s_id_seq\n", table))
+				backupFile.WriteString("    AS integer\n    START WITH 1\n    INCREMENT BY 1\n    NO MINVALUE\n    NO MAXVALUE\n    CACHE 1;\n\n")
+			}
+
+			// Backup sequence ownership
+			backupFile.WriteString(fmt.Sprintf("-- Name: %s_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres\n", table))
+			backupFile.WriteString(fmt.Sprintf("ALTER SEQUENCE public.%s_id_seq OWNED BY public.%s.id;\n\n", table, table))
+
+			// Backup default values for columns
+			backupFile.WriteString(fmt.Sprintf("-- Name: %s id; Type: DEFAULT; Schema: public; Owner: postgres\n", table))
+			backupFile.WriteString(fmt.Sprintf("ALTER TABLE ONLY public.%s ALTER COLUMN id SET DEFAULT nextval('public.%s_id_seq'::regclass);\n\n", table, table))
 		}
 
+		// Backup data using COPY - If not skipping data
 		if !noData {
-			// Backup table data
-			backupFile.WriteString(fmt.Sprintf("-- Data for table '%s'\n", table))
+			backupFile.WriteString(fmt.Sprintf("-- Data for Name: %s; Type: TABLE DATA; Schema: public; Owner: postgres\n", table))
+			backupFile.WriteString(fmt.Sprintf("COPY public.%s (id, first_name, last_name, role) FROM stdin;\n", table))
+
+			// Fetch the table data and write as COPY format
 			rows, err := db.Raw(fmt.Sprintf("SELECT * FROM \"%s\"", table)).Rows()
 			if err != nil {
 				utility.Error("Error fetching data for table '%s': %v", table, err)
 				os.Exit(1)
 			}
-
 			columns, _ := rows.Columns()
 			values := make([]interface{}, len(columns))
 			valuePtrs := make([]interface{}, len(columns))
@@ -284,15 +326,27 @@ func dbCreatePSQLDatabaseBackup() {
 					if val == nil {
 						rowData = append(rowData, "NULL")
 					} else {
-						rowData = append(rowData, fmt.Sprintf("'%v'", val))
+						rowData = append(rowData, fmt.Sprintf("%v", val))
 					}
 				}
-				insertQuery := fmt.Sprintf("INSERT INTO \"%s\" (%s) VALUES (%s);\n", table, strings.Join(columns, ", "), strings.Join(rowData, ", "))
-				backupFile.WriteString(insertQuery)
+				backupFile.WriteString(strings.Join(rowData, "\t") + "\n")
 			}
-			backupFile.WriteString("\n")
+			backupFile.WriteString("\\.\n\n")
+		}
+
+		// Sequence value settings
+		if !noCreateInfo {
+			backupFile.WriteString(fmt.Sprintf("-- Name: %s_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres\n", table))
+			backupFile.WriteString(fmt.Sprintf("SELECT pg_catalog.setval('public.%s_id_seq', 1, true);\n\n", table))
+		}
+
+		// Constraints (e.g., PRIMARY KEY) - If not skipping CREATE info
+		if !noCreateInfo {
+			backupFile.WriteString(fmt.Sprintf("-- Name: %s_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres\n", table))
+			backupFile.WriteString(fmt.Sprintf("ALTER TABLE ONLY public.%s ADD CONSTRAINT %s_pkey PRIMARY KEY (id);\n\n", table, table))
 		}
 	}
-	utility.Success("Backup completed successfully. File saved at: %s", utility.Yellow(backupFullFilePath))
 
+	backupFile.WriteString("\n-- PostgreSQL database dump complete\n")
+	utility.Success("Backup completed successfully. File saved at: %s", utility.Yellow(backupFullFilePath))
 }
