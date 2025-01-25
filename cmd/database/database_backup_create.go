@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -84,19 +85,42 @@ func dbCreateMySQLDatabaseBackup() {
 	}
 	defer backupFile.Close()
 
+	// Write header information
+	backupFile.WriteString(fmt.Sprintf("-- dSync-MySQL dump v1.0.0, for %s/%s\n", runtime.GOOS, runtime.GOARCH))
+	backupFile.WriteString(fmt.Sprintf("--\n-- Host: %s    Database: %s\n--\n", MySQL_DB_HOST, databaseName))
+	backupFile.WriteString("-- ------------------------------------------------------\n")
+
+	backupFile.WriteString("/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;\n")
+	backupFile.WriteString("/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;\n")
+	backupFile.WriteString("/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;\n")
+	backupFile.WriteString("/*!50503 SET NAMES utf8mb4 */;\n")
+	backupFile.WriteString("/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;\n")
+	backupFile.WriteString("/*!40103 SET TIME_ZONE='+00:00' */;\n")
+	backupFile.WriteString("/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;\n")
+	backupFile.WriteString("/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;\n")
+	backupFile.WriteString("/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;\n")
+	backupFile.WriteString("/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;\n\n")
+
+	// Fetch all table names
 	tables := []string{}
 	if err := db.Raw("SHOW TABLES").Scan(&tables).Error; err != nil {
 		utility.Error("Error fetching table list: %v", err)
 		os.Exit(1)
 	}
 
-	backupFile.WriteString(fmt.Sprintf("-- Host: %s/%s\n", MySQL_DB_HOST, MySQL_DB_PORT))
-	backupFile.WriteString(fmt.Sprintf("-- Database: %s\n\n", databaseName))
-
 	for _, table := range tables {
+		// Lock the table before any operation
+		if err := db.Exec(fmt.Sprintf("LOCK TABLES `%s` READ", table)).Error; err != nil {
+			utility.Error("Error locking table '%s': %v", table, err)
+			os.Exit(1)
+		}
+
 		if !noCreateInfo {
 			// Backup table schema
-			backupFile.WriteString(fmt.Sprintf("-- Schema for table `%s`\n", table))
+			backupFile.WriteString(fmt.Sprintf("--\n-- Table structure for table `%s`\n--\n\n", table))
+			backupFile.WriteString(fmt.Sprintf("DROP TABLE IF EXISTS `%s`;\n", table))
+			backupFile.WriteString("/*!40101 SET @saved_cs_client     = @@character_set_client */;\n")
+			backupFile.WriteString("/*!50503 SET character_set_client = utf8mb4 */;\n")
 			var createTableQuery string
 			if err := db.Raw(fmt.Sprintf("SHOW CREATE TABLE `%s`", table)).Row().Scan(&table, &createTableQuery); err != nil {
 				utility.Error("Error fetching schema for table '%s': %v", table, err)
@@ -104,9 +128,12 @@ func dbCreateMySQLDatabaseBackup() {
 			}
 			backupFile.WriteString(createTableQuery + ";\n\n")
 		}
+
 		if !noData {
 			// Backup table data
-			backupFile.WriteString(fmt.Sprintf("-- Data for table `%s`\n", table))
+			backupFile.WriteString(fmt.Sprintf("--\n-- Dumping data for table `%s`\n--\n\n", table))
+			backupFile.WriteString(fmt.Sprintf("LOCK TABLES `%s` WRITE;\n", table))
+			backupFile.WriteString(fmt.Sprintf("/*!40000 ALTER TABLE `%s` DISABLE KEYS */;\n", table))
 			rows, err := db.Raw(fmt.Sprintf("SELECT * FROM `%s`", table)).Rows()
 			if err != nil {
 				utility.Error("Error fetching data for table '%s': %v", table, err)
@@ -141,10 +168,28 @@ func dbCreateMySQLDatabaseBackup() {
 				insertQuery := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s);\n", table, strings.Join(columns, ", "), strings.Join(rowData, ", "))
 				backupFile.WriteString(insertQuery)
 			}
-
+			backupFile.WriteString(fmt.Sprintf("/*!40000 ALTER TABLE `%s` ENABLE KEYS */;\n", table))
+			backupFile.WriteString("UNLOCK TABLES;\n\n")
 			backupFile.WriteString("\n")
 		}
+
+		// Unlock the table after operation
+		if err := db.Exec("UNLOCK TABLES").Error; err != nil {
+			utility.Error("Error unlocking tables: %v", err)
+			os.Exit(1)
+		}
 	}
+
+	// Footer
+	backupFile.WriteString("/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;\n")
+	backupFile.WriteString("/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;\n")
+	backupFile.WriteString("/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;\n")
+	backupFile.WriteString("/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;\n")
+	backupFile.WriteString("/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;\n")
+	backupFile.WriteString("/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;\n")
+	backupFile.WriteString("/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;\n")
+	backupFile.WriteString("/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;\n")
+
 	utility.Success("Backup completed successfully. File saved at: %s", utility.Yellow(backupFullFilePath))
 }
 
