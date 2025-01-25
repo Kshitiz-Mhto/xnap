@@ -1,11 +1,13 @@
 package database
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Kshitiz-Mhto/dsync/utility"
@@ -20,12 +22,13 @@ var (
 	backupFullFilePath string
 	noData             bool
 	noCreateInfo       bool
+	wg                 sync.WaitGroup
 )
 
 var dbBackupCreateCmd = &cobra.Command{
 	Use:     "create",
 	Aliases: []string{"new", "add"},
-	Example: "dysnc db backup create <db-name> --type <db-type> --name <backup-filename> --path <path/to/> --no-data --no-create-info",
+	Example: "dysnc db backup create <db-name> --type <db-type> --name <backup-filename> --path <path/to/>  --schedule <schedule> --no-data --no-create-info",
 	Short:   "Create a new database backup",
 	Args:    cobra.ExactArgs(1),
 	Run:     dbCreateDatabaseBackup,
@@ -65,6 +68,24 @@ func dbCreateDatabaseBackup(cmd *cobra.Command, args []string) {
 }
 
 func dbCreateMySQLDatabaseBackup() {
+
+	if schedule == "" {
+		performMySQlDatabaseBackup(databaseName, schedule)
+	} else {
+		scheduleDatabaseBackup(databaseName, schedule)
+	}
+}
+
+func dbCreatePSQLDatabaseBackup() {
+
+	if schedule == "" {
+		performMyPSQLDatabaseBackup(databaseName, schedule)
+	} else {
+		scheduleDatabaseBackup(databaseName, schedule)
+	}
+}
+
+func performMySQlDatabaseBackup(databaseName, _ string) {
 	dns := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", MySQL_DB_USER, MySQL_DB_PASSWORD, MySQL_DB_HOST, MySQL_DB_PORT, databaseName)
 
 	db, err := gorm.Open(mysql.Open(dns), &gorm.Config{})
@@ -195,7 +216,7 @@ func dbCreateMySQLDatabaseBackup() {
 	utility.Success("Backup completed successfully. File saved at: %s", utility.Yellow(backupFullFilePath))
 }
 
-func dbCreatePSQLDatabaseBackup() {
+func performMyPSQLDatabaseBackup(databaseName, _ string) {
 	dns := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s", POSTGRES_DB_HOSTOST, POSTGRES_DB_PORT, POSTGRES_DB_USER, POSTGRES_DB_PASSWORD, databaseName)
 
 	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
@@ -349,4 +370,55 @@ func dbCreatePSQLDatabaseBackup() {
 
 	backupFile.WriteString("\n-- PostgreSQL database dump complete\n")
 	utility.Success("Backup completed successfully. File saved at: %s", utility.Yellow(backupFullFilePath))
+}
+
+func scheduleDatabaseBackup(databaseName, schedule string) {
+	// Parse the schedule time
+	var scheduleTime time.Time
+	if len(schedule) == 5 && schedule[2] == ':' { // HH:MM format
+		now := time.Now()
+		parsedTime, err := time.Parse("15:04", schedule)
+		if err != nil {
+			utility.Error("Invalid schedule time format. Use 'HH:MM'.")
+		}
+		scheduleTime = time.Date(now.Year(), now.Month(), now.Day(), parsedTime.Hour(), parsedTime.Minute(), 0, 0, now.Location())
+		if scheduleTime.Before(now) {
+			scheduleTime = scheduleTime.Add(24 * time.Hour) // Schedule for the next day if time has already passed today
+		}
+	} else {
+		utility.Error("Invalid schedule format. Use 'HH:MM'.")
+	}
+
+	fmt.Printf("Backup scheduled for %s\n", utility.Yellow(scheduleTime.String()))
+
+	wg.Add(1)
+	// Context to handle cancellation
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Wait until the scheduled time
+	waitDuration := time.Until(scheduleTime)
+	time.AfterFunc(waitDuration, func() {
+		defer wg.Done() // Mark the backup task as done
+		utility.Info("Starting scheduled backup process at %s\n", time.Now().Format(time.RFC1123))
+		if dbType == "mysql" {
+			performMySQlDatabaseBackup(databaseName, schedule)
+		} else if dbType == "psql" || dbType == "postgres" {
+			performMyPSQLDatabaseBackup(databaseName, schedule)
+		}
+	})
+
+	// Wait for the backup to finish or for cancellation
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		utility.Info("Backup completed successfully.")
+	case <-ctx.Done():
+		utility.Info("Backup process was canceled.")
+	}
 }
