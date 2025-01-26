@@ -22,7 +22,7 @@ var (
 	backupFullFilePath string
 	noData             bool
 	noCreateInfo       bool
-	wg                 sync.WaitGroup
+	WG                 sync.WaitGroup
 )
 
 var dbBackupCreateCmd = &cobra.Command{
@@ -380,6 +380,7 @@ func scheduleDatabaseBackup(databaseName, schedule string) {
 		parsedTime, err := time.Parse("15:04", schedule)
 		if err != nil {
 			utility.Error("Invalid schedule time format. Use 'HH:MM'.")
+			os.Exit(1)
 		}
 		scheduleTime = time.Date(now.Year(), now.Month(), now.Day(), parsedTime.Hour(), parsedTime.Minute(), 0, 0, now.Location())
 		if scheduleTime.Before(now) {
@@ -387,11 +388,12 @@ func scheduleDatabaseBackup(databaseName, schedule string) {
 		}
 	} else {
 		utility.Error("Invalid schedule format. Use 'HH:MM'.")
+		os.Exit(1)
 	}
 
-	fmt.Printf("Backup scheduled for %s\n", utility.Yellow(scheduleTime.String()))
+	utility.Info("Backup scheduled for %s\n", utility.Yellow(scheduleTime.String()))
 
-	wg.Add(1)
+	WG.Add(1)
 	// Context to handle cancellation
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -399,7 +401,7 @@ func scheduleDatabaseBackup(databaseName, schedule string) {
 	// Wait until the scheduled time
 	waitDuration := time.Until(scheduleTime)
 	time.AfterFunc(waitDuration, func() {
-		defer wg.Done() // Mark the backup task as done
+		defer WG.Done() // Mark the backup task as done
 		utility.Info("Starting scheduled backup process at %s\n", time.Now().Format(time.RFC1123))
 		if dbType == "mysql" {
 			performMySQlDatabaseBackup(databaseName, schedule)
@@ -411,7 +413,7 @@ func scheduleDatabaseBackup(databaseName, schedule string) {
 	// Wait for the backup to finish or for cancellation
 	done := make(chan struct{})
 	go func() {
-		wg.Wait()
+		WG.Wait()
 		close(done)
 	}()
 
