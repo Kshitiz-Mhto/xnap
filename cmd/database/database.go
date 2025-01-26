@@ -20,9 +20,10 @@ var (
 )
 
 var (
-	dbName  string
-	dbOwner string
-	dbType  string
+	dbName   string
+	dbOwner  string
+	dbType   string
+	schedule string
 )
 
 // DBCmd is the root command for the db subcommand
@@ -46,6 +47,7 @@ func init() {
 	DBCmd.AddCommand(dbCreateCmd)
 	DBCmd.AddCommand(dbDeleteCmd)
 	DBCmd.AddCommand(dbBackupCmd)
+	DBCmd.AddCommand(dbRestoreCmd)
 
 	dbListCmd.Flags().StringVarP(&dbType, "type", "t", "all", "Filter by database type (all/mysql/postgres)")
 
@@ -53,4 +55,12 @@ func init() {
 	dbCreateCmd.Flags().StringVarP(&dbOwner, "owner", "o", "postgres", "specify owner only for postgres database")
 
 	dbDeleteCmd.Flags().StringVarP(&dbType, "type", "t", "", "specify the database type for deletion")
+
+	dbRestoreCmd.Flags().StringVarP(&backupFullFilePath, "backup", "b", "", "Path to the backup file (required)")
+	dbRestoreCmd.Flags().StringVarP(&schedule, "schedule", "s", "", "Time to schedule the restoration (in a format like HH:MM or a cron-like string)")
+	dbRestoreCmd.Flags().StringVarP(&dbType, "type", "t", "", "specify the database type for restoration")
+
+	dbRestoreCmd.MarkFlagRequired("backup")
+	dbRestoreCmd.MarkFlagRequired("type")
+
 }
