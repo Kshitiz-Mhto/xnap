@@ -24,6 +24,8 @@ var (
 	dbOwner  string
 	dbType   string
 	schedule string
+	masterDB string
+	slaveDB  string
 )
 
 // DBCmd is the root command for the db subcommand
@@ -48,19 +50,28 @@ func init() {
 	DBCmd.AddCommand(dbDeleteCmd)
 	DBCmd.AddCommand(dbBackupCmd)
 	DBCmd.AddCommand(dbRestoreCmd)
+	DBCmd.AddCommand(dbSyncCmd)
 
 	dbListCmd.Flags().StringVarP(&dbType, "type", "t", "all", "Filter by database type (all/mysql/postgres)")
 
-	dbCreateCmd.Flags().StringVarP(&dbType, "type", "t", "mysql", "create database type MySQL")
-	dbCreateCmd.Flags().StringVarP(&dbOwner, "owner", "o", "postgres", "specify owner only for postgres database")
+	dbCreateCmd.Flags().StringVarP(&dbType, "type", "t", "mysql", "Create database type MySQL")
+	dbCreateCmd.Flags().StringVarP(&dbOwner, "owner", "o", "postgres", "Specify owner only for postgres database")
 
-	dbDeleteCmd.Flags().StringVarP(&dbType, "type", "t", "", "specify the database type for deletion")
+	dbDeleteCmd.Flags().StringVarP(&dbType, "type", "t", "", "Specify the database type for deletion")
 
 	dbRestoreCmd.Flags().StringVarP(&backupFullFilePath, "backup", "b", "", "Path to the backup file (required)")
 	dbRestoreCmd.Flags().StringVarP(&schedule, "schedule", "s", "", "Time to schedule the restoration (in a format like HH:MM or a cron-like string)")
-	dbRestoreCmd.Flags().StringVarP(&dbType, "type", "t", "", "specify the database type for restoration")
+	dbRestoreCmd.Flags().StringVarP(&dbType, "type", "t", "", "Specify the database type for restoration")
+
+	dbSyncCmd.Flags().StringVarP(&masterDB, "master", "m", "", "Specify the source/master database")
+	dbSyncCmd.Flags().StringVarP(&slaveDB, "slave", "s", "", "Specify the destination/slave database")
+	dbSyncCmd.Flags().StringVarP(&dbType, "type", "", "", "Specify the database type")
+
+	dbDeleteCmd.MarkFlagRequired("type")
 
 	dbRestoreCmd.MarkFlagRequired("backup")
 	dbRestoreCmd.MarkFlagRequired("type")
+
+	dbSyncCmd.MarkFlagsRequiredTogether("master", "slave", "type")
 
 }
