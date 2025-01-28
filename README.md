@@ -9,65 +9,50 @@
 ## Key Features
 
 ### 1. Multi-Source Data Synchronization
-- **Database Sync**: Synchronize data between different databases (e.g., MySQL ↔ PostgreSQL).
-- **Cloud Storage**: Export and import files between cloud platforms (e.g., AWS S3 ↔ Google Cloud Storage).
+- **Database Sync**: Synchronize data between databases (e.g., MySQL ↔ MySQL).
 - **Local to Cloud**: Transfer data between local systems and cloud services effortlessly.
 
-### 2. Data Transformation
-- **Custom Transformations**: Apply transformations during synchronization, such as renaming columns or filtering rows.
-- **User-Defined Scripts**: Support for scripts to modify data during transit.
-
-### 3. Backup and Restore
+### 2. Backup and Restore
+- **Schema-Only or Data-only**: Create backups for databases with only data or only schema of tables inside database
 - **Scheduled Backups**: Create backups for databases and files on a schedule.
-- **One-Command Restore**: Restore backups with a single command.
 
-### 4. Secure and Efficient Transfers
-- **Encryption**: TLS encryption for secure database connections.
-- **Authentication**: Use IAM roles and API keys for cloud authentication.
-- **Incremental Updates**: Reduce transfer overhead by syncing only changes.
-
-### 5. Task Scheduling
-- **Automation**: Automate recurring tasks using a cron-like scheduler.
-- **Management**: Manage schedules through CLI or configuration files.
-
-### 6. Task Tracking and Logging
-- **Detailed Logs**: Monitor sync status and troubleshoot with comprehensive logs.
-- **Retry Mechanisms**: Track tasks in an internal database and retry failed tasks automatically.
+### 3. Tracking and Logging
+- **Detailed Logs**: Monitor status and troubleshoot with comprehensive logs.
+- **Retry Mechanisms**: Track and retry failed tasks automatically.
 
 ---
 
-## Dsync: Operations Overview
+# Project: dsync
 
-### Synchronization
-- **Data Extraction**: Retrieve data from the source using appropriate connectors (e.g., MySQL driver, AWS SDK).
-- **Optional Transformations**: Apply transformations such as filters or column mappings during the sync process.
-- **Secure Data Transfer**: Transfer data to the destination with secure protocols.
-- **Status Tracking**: Monitor task statuses, errors, and retries using the internal task database.
+This project, `dsync`, is built using the Go programming language. Below is a list of the main technologies, libraries, and dependencies used in this project.
 
-### Backup and Restore
-- **Backups**:
-  - Data is compressed and stored in user-specified formats (e.g., `.sql`, `.csv`).
-  - Efficiently handles large datasets with compression to minimize storage requirements.
-- **Restores**:
-  - Reverses the backup process, including format conversions as needed.
-  - Ensures data integrity and compatibility during restoration.
+## Technologies and Libraries Used
 
-### Scheduling
-- **Storage**:
-  - Schedules are stored in an internal database or defined in a YAML configuration file.
-- **Automated Execution**:
-  - A built-in scheduler continuously monitors for due tasks and executes them on schedule.
+### Go Version
+- **Go**: 1.23.4
 
-### Task Management
-- **Task Tracking**:
-  - Tasks are recorded in an internal database with detailed statuses:
-    - `pending`
-    - `in-progress`
-    - `completed`
-    - `failed`
-- **Detailed Logging**:
-  - Each task generates logs that capture execution details, errors, and retry attempts.
-- **Error Recovery**:
-  - Failed tasks are retried automatically based on configurable retry mechanisms.
+### Main Dependencies
 
-Dsync ensures robust operations with its comprehensive synchronization, backup, scheduling, and task management capabilities. Manage your workflows with confidence!
+- **Cobra**: v1.8.1  
+  A library for creating powerful modern CLI applications.
+
+- **Termlink**: v1.4.2  
+  A library for easy handling of terminal links (hyperlinks) in terminal environments.
+
+- **GORM**:  
+  - **GORM ORM**: v1.25.12  
+    The ORM library for Go for interacting with databases.
+  - **MySQL Driver**: v1.5.7  
+    MySQL driver for GORM.
+  - **PostgreSQL Driver**: v1.5.11  
+    PostgreSQL driver for GORM.
+
+- **Godotenv**: v1.5.1  
+  A Go library for loading environment variables from `.env` files.
+
+- **Color**: v1.5.4  
+  A library for easy terminal color manipulation and output formatting.
+
+- **Tablewriter**: v0.0.5  
+  A Go package for rendering tables in the terminal with customizable options.
+
