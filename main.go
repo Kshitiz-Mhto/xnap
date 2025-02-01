@@ -16,8 +16,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package main
 
-import "github.com/Kshitiz-Mhto/xnap/cmd"
+import "github.com/Kshitiz-Mhto/xnap/cli"
 
 func main() {
-	cmd.Execute()
+	cli.Execute()
 }
