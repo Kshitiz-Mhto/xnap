@@ -25,6 +25,7 @@ require (
 )
 
 require (
+	github.com/google/uuid v1.6.0
 	github.com/gookit/color v1.5.4
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/joho/godotenv v1.5.1
