@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Kshitiz-Mhto/dsync/utility"
+	"github.com/Kshitiz-Mhto/xnap/utility"
+	"github.com/Kshitiz-Mhto/xnap/utility/common"
 	"github.com/spf13/cobra"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
@@ -14,7 +15,7 @@ import (
 var dbCreateCmd = &cobra.Command{
 	Use:     "create",
 	Aliases: []string{"new", "add"},
-	Example: "dsync db create <db name> --type <db type>",
+	Example: "xnap db create <db name> --type <db_type> --user <db_user> --password",
 	Short:   "Create new database",
 	Args:    cobra.ExactArgs(1),
 	Run:     dbCreation,
@@ -22,6 +23,14 @@ var dbCreateCmd = &cobra.Command{
 
 func dbCreation(cmd *cobra.Command, args []string) {
 	dbName = args[0]
+
+	if promptPass {
+		dbPassword = common.PromptForPassword()
+	} else {
+		utility.Error("Please include  password paramater `-p`.")
+		os.Exit(1)
+	}
+
 	switch dbType {
 	case "mysql":
 		createMySQLDatabase()
@@ -34,7 +43,7 @@ func dbCreation(cmd *cobra.Command, args []string) {
 }
 
 func createMySQLDatabase() {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/", MySQL_DB_USER, MySQL_DB_PASSWORD, MySQL_DB_HOST, MySQL_DB_PORT)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/", dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -58,7 +67,7 @@ func createMySQLDatabase() {
 }
 
 func createPostgresDatabase() {
-	dns := fmt.Sprintf("host=%s port=%s user=%s password=%s", POSTGRES_DB_HOSTOST, POSTGRES_DB_PORT, POSTGRES_DB_USER, POSTGRES_DB_PASSWORD)
+	dns := fmt.Sprintf("host=%s port=%s user=%s password=%s", POSTGRES_DB_HOST, POSTGRES_DB_PORT, dbUser, dbPassword)
 
 	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
 	if err != nil {

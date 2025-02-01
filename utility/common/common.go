@@ -2,9 +2,13 @@ package common
 
 import (
 	"fmt"
+	"os"
+	"strings"
+	"syscall"
 	"time"
 
 	"github.com/savioxavier/termlink"
+	"golang.org/x/term"
 )
 
 var (
@@ -64,4 +68,19 @@ func VersionCheck(client *github.Client) (res *github.RepositoryRelease, skip bo
 func IssueMessage() {
 	gitIssueLink := termlink.ColorLink("GitHub issue", "https://github.com/Kshitiz-Mhto/dsync/issues", "green")
 	fmt.Printf("Please check if you are using the latest version of CLI and retry the command \nIf you are still facing issues, please report it on our community slack or open a %s \n", gitIssueLink)
+}
+
+func EscapeSingleQuotes(s string) string {
+	return strings.ReplaceAll(s, "'", "''")
+}
+
+func PromptForPassword() string {
+	fmt.Print("Enter password: ")
+	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
+	fmt.Println() // Print a newline after input
+	if err != nil {
+		fmt.Println("Error reading password:", err)
+		os.Exit(1)
+	}
+	return string(bytePassword)
 }

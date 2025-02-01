@@ -10,7 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kshitiz-Mhto/dsync/utility"
+	"github.com/Kshitiz-Mhto/xnap/utility"
+	"github.com/Kshitiz-Mhto/xnap/utility/common"
 	"github.com/spf13/cobra"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
@@ -28,7 +29,7 @@ var (
 var dbBackupCreateCmd = &cobra.Command{
 	Use:     "create",
 	Aliases: []string{"new", "add"},
-	Example: "dysnc db backup create <db-name> --type <db-type> --name <backup-filename> --path <path/to/>  --schedule <schedule> --no-data --no-create-info",
+	Example: "xnap db backup create <db-name> --type <db-type> --user <db_user> --password --name <backup-filename> --path <path/to/>  --schedule <schedule> --no-data --no-create-info",
 	Short:   "Create a new database backup",
 	Args:    cobra.ExactArgs(1),
 	Run:     dbCreateDatabaseBackup,
@@ -40,6 +41,13 @@ func dbCreateDatabaseBackup(cmd *cobra.Command, args []string) {
 	backupFileNamePath, _ = cmd.Flags().GetString("path")
 	noData, _ = cmd.Flags().GetBool("no-data")
 	noCreateInfo, _ = cmd.Flags().GetBool("no-create-info")
+
+	if promptPass {
+		dbPassword = common.PromptForPassword()
+	} else {
+		utility.Error("Please include  password paramater `-p`.")
+		os.Exit(1)
+	}
 
 	if backupFileName == "" {
 		// YYYYMMDD_HHMMSS_databaseName_backup.sql
@@ -70,7 +78,7 @@ func dbCreateDatabaseBackup(cmd *cobra.Command, args []string) {
 func dbCreateMySQLDatabaseBackup() {
 
 	if schedule == "" {
-		performMySQlDatabaseBackup(databaseName, schedule)
+		performMySQLDatabaseBackup(databaseName, schedule)
 	} else {
 		scheduleDatabaseBackup(databaseName, schedule)
 	}
@@ -85,8 +93,8 @@ func dbCreatePSQLDatabaseBackup() {
 	}
 }
 
-func performMySQlDatabaseBackup(databaseName, _ string) {
-	dns := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", MySQL_DB_USER, MySQL_DB_PASSWORD, MySQL_DB_HOST, MySQL_DB_PORT, databaseName)
+func performMySQLDatabaseBackup(databaseName, _ string) {
+	dns := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, databaseName)
 
 	db, err := gorm.Open(mysql.Open(dns), &gorm.Config{})
 	if err != nil {
@@ -176,9 +184,9 @@ func performMySQlDatabaseBackup(databaseName, _ string) {
 					} else {
 						switch v := val.(type) {
 						case []byte: // Convert byte slices to string
-							rowData = append(rowData, fmt.Sprintf("'%s'", string(v)))
+							rowData = append(rowData, fmt.Sprintf("'%s'", common.EscapeSingleQuotes(string(v))))
 						case string:
-							rowData = append(rowData, fmt.Sprintf("'%s'", v))
+							rowData = append(rowData, fmt.Sprintf("'%s'", common.EscapeSingleQuotes(v)))
 						case int, int64, float64: // Handle numeric types
 							rowData = append(rowData, fmt.Sprintf("%v", v))
 						default: // Handle other types generically
@@ -217,7 +225,7 @@ func performMySQlDatabaseBackup(databaseName, _ string) {
 }
 
 func performMyPSQLDatabaseBackup(databaseName, _ string) {
-	dns := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s", POSTGRES_DB_HOSTOST, POSTGRES_DB_PORT, POSTGRES_DB_USER, POSTGRES_DB_PASSWORD, databaseName)
+	dns := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s", POSTGRES_DB_HOST, POSTGRES_DB_PORT, dbUser, dbPassword, databaseName)
 
 	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
 	if err != nil {
@@ -404,7 +412,7 @@ func scheduleDatabaseBackup(databaseName, schedule string) {
 		defer WG.Done() // Mark the backup task as done
 		utility.Info("Starting scheduled backup process at %s\n", time.Now().Format(time.RFC1123))
 		if dbType == "mysql" {
-			performMySQlDatabaseBackup(databaseName, schedule)
+			performMySQLDatabaseBackup(databaseName, schedule)
 		} else if dbType == "psql" || dbType == "postgres" {
 			performMyPSQLDatabaseBackup(databaseName, schedule)
 		}

@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Kshitiz-Mhto/dsync/utility/common"
+	"github.com/Kshitiz-Mhto/xnap/utility/common"
 	"github.com/olekukonko/tablewriter"
 )
 

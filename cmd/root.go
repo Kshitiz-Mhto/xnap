@@ -20,7 +20,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Kshitiz-Mhto/dsync/cmd/database"
+	"github.com/Kshitiz-Mhto/xnap/cmd/cloud"
+	"github.com/Kshitiz-Mhto/xnap/cmd/database"
 	"github.com/spf13/cobra"
 )
 
@@ -29,9 +30,8 @@ var version bool
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "dsync",
-	Short: "CLI for data synchronization and management",
-	Long: `dSync is a CLI tool designed to simplify the management and synchronization of data 
-between diverse systems, including databases, cloud storage, and local file systems.
+	Short: "CLI for database backup and restore utility",
+	Long: `xnap is a CLI tool designed to simplify the backup and restoration including databases, cloud storage files, and local system files.
 	 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		if version {
@@ -56,6 +56,7 @@ func init() {
 	// Here you will define your flags and configuration settings.
 
 	rootCmd.AddCommand(database.DBCmd)
+	rootCmd.AddCommand(cloud.CloudSyncCmd)
 
 	rootCmd.Flags().BoolVarP(&version, "version", "v", false, "Print the version of the CLI")
 }

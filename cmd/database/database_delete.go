@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Kshitiz-Mhto/dsync/utility"
+	"github.com/Kshitiz-Mhto/xnap/utility"
+	"github.com/Kshitiz-Mhto/xnap/utility/common"
 	"github.com/spf13/cobra"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
@@ -16,7 +17,7 @@ var dbDeleteCmd = &cobra.Command{
 	Use:     "delete",
 	Aliases: []string{"remove", "rm", "del"},
 	Short:   "Delete the database",
-	Example: "dsync db delete <databse name> --type <database type>",
+	Example: "xnap db delete <databse name> --type <database_type> --user <db_user> --password",
 	Args:    cobra.ExactArgs(1),
 	Run:     dbDeletion,
 
@@ -30,6 +31,14 @@ var dbDeleteCmd = &cobra.Command{
 
 func dbDeletion(cmd *cobra.Command, args []string) {
 	dbName = args[0]
+
+	if promptPass {
+		dbPassword = common.PromptForPassword()
+	} else {
+		utility.Error("Please include  password paramater `-p`.")
+		os.Exit(1)
+	}
+
 	switch dbType {
 	case "mysql":
 		deleteMySQLDatabase()
@@ -42,7 +51,7 @@ func dbDeletion(cmd *cobra.Command, args []string) {
 }
 
 func deleteMySQLDatabase() {
-	dns := fmt.Sprintf("%s:%s@tcp(%s:%s)/", MySQL_DB_USER, MySQL_DB_PASSWORD, MySQL_DB_HOST, MySQL_DB_PORT)
+	dns := fmt.Sprintf("%s:%s@tcp(%s:%s)/", dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT)
 
 	db, err := gorm.Open(mysql.Open(dns), &gorm.Config{})
 	if err != nil {
@@ -61,7 +70,7 @@ func deleteMySQLDatabase() {
 }
 
 func deletePostgresDatabase() {
-	dns := fmt.Sprintf("host=%s port=%s user=%s password=%s", POSTGRES_DB_HOSTOST, POSTGRES_DB_PORT, POSTGRES_DB_USER, POSTGRES_DB_PASSWORD)
+	dns := fmt.Sprintf("host=%s port=%s user=%s password=%s", POSTGRES_DB_HOST, POSTGRES_DB_PORT, dbUser, dbPassword)
 
 	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
 	if err != nil {

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Kshitiz-Mhto/dsync/utility"
-	"github.com/Kshitiz-Mhto/dsync/utility/common"
+	"github.com/Kshitiz-Mhto/xnap/utility"
+	"github.com/Kshitiz-Mhto/xnap/utility/common"
 	"github.com/spf13/cobra"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
@@ -16,23 +16,27 @@ var dbListCmd = &cobra.Command{
 	Use:     "ls",
 	Aliases: []string{"list", "all"},
 	Short:   "list all the databases",
-	Example: "dsync db ls --type <type>",
+	Example: "xnap db ls --type <type> --user <db_user> --password",
 	Run:     listDatabases,
 }
 
 func listDatabases(cmd *cobra.Command, args []string) {
 
+	if promptPass {
+		dbPassword = common.PromptForPassword()
+	} else {
+		utility.Error("Please include  password paramater `-p`.")
+		os.Exit(1)
+	}
+
 	// Switch between database types
 	switch dbType {
-	case "all":
-		listMySQLDatabases()
-		listPostgresDatabases()
 	case "mysql":
 		listMySQLDatabases()
 	case "postgres", "psql":
 		listPostgresDatabases()
 	default:
-		utility.Error("Unsupported database type: %s. Use 'all', 'mysql', or 'postgres'.", dbType)
+		utility.Error("Unsupported database type: %s. Use 'mysql', or 'postgres'.", dbType)
 		os.Exit(1)
 	}
 
@@ -40,7 +44,7 @@ func listDatabases(cmd *cobra.Command, args []string) {
 
 func listMySQLDatabases() {
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/", MySQL_DB_USER, MySQL_DB_PASSWORD, MySQL_DB_HOST, MySQL_DB_PORT)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/", dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -78,7 +82,7 @@ func listMySQLDatabases() {
 
 func listPostgresDatabases() {
 
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s sslmode=disable", POSTGRES_DB_HOSTOST, POSTGRES_DB_PORT, POSTGRES_DB_USER, POSTGRES_DB_PASSWORD)
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s sslmode=disable", POSTGRES_DB_HOST, POSTGRES_DB_PORT, dbUser, dbPassword)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -98,7 +102,7 @@ func listPostgresDatabases() {
 	ow := utility.NewOutputWriter()
 	oi := utility.NewOutputWriter()
 
-	oi.AppendDataWithLabel("db_host", POSTGRES_DB_HOSTOST, "DB_HOST")
+	oi.AppendDataWithLabel("db_host", POSTGRES_DB_HOST, "DB_HOST")
 	oi.AppendDataWithLabel("port", POSTGRES_DB_PORT, "DB_PORT")
 	oi.AppendDataWithLabel("type", "PostgreSQL", "DB_TYPE")
 	oi.FinishAndPrintOutput()

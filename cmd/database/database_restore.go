@@ -7,7 +7,8 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/Kshitiz-Mhto/dsync/utility"
+	"github.com/Kshitiz-Mhto/xnap/utility"
+	"github.com/Kshitiz-Mhto/xnap/utility/common"
 	"github.com/spf13/cobra"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -17,7 +18,7 @@ var dbRestoreCmd = &cobra.Command{
 	Use:     "restore",
 	Aliases: []string{"reset", "restores"},
 	Short:   "Restore a database",
-	Example: "dsync db restore <database-name> --type <db-type> --backup <path/to/backup-filename> --schedule <schedule-time>",
+	Example: "xnap db restore <database-name> --type <db-type> --user <db_user> --password --backup <path/to/backup-filename> --schedule <schedule-time>",
 	Args:    cobra.ExactArgs(1),
 	Run:     runRestoreCommand,
 }
@@ -26,6 +27,13 @@ func runRestoreCommand(cmd *cobra.Command, args []string) {
 	databaseName = args[0]
 	backupFilePath, _ := cmd.Flags().GetString("backup")
 	schedule, _ := cmd.Flags().GetString("schedule")
+
+	if promptPass {
+		dbPassword = common.PromptForPassword()
+	} else {
+		utility.Error("Please include  password paramater `-p`.")
+		os.Exit(1)
+	}
 
 	switch dbType {
 	case "mysql":
@@ -48,10 +56,8 @@ func runRestoreCommandForMySQL(backupFilePath string, schedule string) {
 	}
 
 	if schedule == "" {
-		// Perform immediate restore
 		performRestoreForMysql(databaseName, backupFilePath)
 	} else {
-		// Schedule the restore operation
 		scheduleRestore(databaseName, backupFilePath, schedule)
 	}
 }
@@ -65,10 +71,8 @@ func runRestoreCommandForPSQL(backupFilePath string, schedule string) {
 	}
 
 	if schedule == "" {
-		// Perform immediate restore
 		performRestoreForPSQL(databaseName, backupFilePath)
 	} else {
-		// Schedule the restore operation
 		scheduleRestore(databaseName, backupFilePath, schedule)
 	}
 }
@@ -77,7 +81,7 @@ func performRestoreForMysql(databaseName, backupFilePath string) {
 	var dbExist int = 0
 	utility.Info("Starting restore process for database '%s' from file '%s'\n", databaseName, backupFilePath)
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/", MySQL_DB_USER, MySQL_DB_PASSWORD, MySQL_DB_HOST, MySQL_DB_PORT)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/", dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		utility.Error("Failed to connect to MySQL: %s", err)
@@ -98,7 +102,7 @@ func performRestoreForMysql(databaseName, backupFilePath string) {
 		utility.Success("Database '%s' created successfully.\n", databaseName)
 	}
 
-	command := exec.Command("mysql", "-u", MySQL_DB_USER, "-p"+MySQL_DB_PASSWORD, databaseName)
+	command := exec.Command("mysql", "-u", dbUser, "-p"+dbPassword, databaseName)
 	backupFile, err := os.Open(backupFilePath)
 	if err != nil {
 		utility.Error("Failed to open backup file: %v", err)
@@ -118,7 +122,7 @@ func performRestoreForMysql(databaseName, backupFilePath string) {
 func performRestoreForPSQL(databaseName, backupFilePath string) {
 	utility.Info("Starting restore process for database '%s' from file '%s'\n", databaseName, backupFilePath)
 
-	command := exec.Command("psql", "-u", POSTGRES_DB_USER, "-p"+POSTGRES_DB_PASSWORD, databaseName)
+	command := exec.Command("psql", "-u", dbUser, "-p"+dbPassword, databaseName)
 	backupFile, err := os.Open(backupFilePath)
 	if err != nil {
 		utility.Error("Failed to open backup file: %v", err)
