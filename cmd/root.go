@@ -30,9 +30,8 @@ var version bool
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "dsync",
-	Short: "CLI for database backup and restore utility",
-	Long: `xnap is a CLI tool designed to simplify the backup and restoration including databases, cloud storage files, and local system files.
-	 `,
+	Short: "CLI for database and storage files backup and restore utility",
+	Long:  "xnap is a CLI tool designed to simplify the backup and restoration including databases, and local system files.",
 	Run: func(cmd *cobra.Command, args []string) {
 		if version {
 			versionCMD.Run(cmd, args)
