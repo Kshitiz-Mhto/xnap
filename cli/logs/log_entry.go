@@ -1,9 +1,13 @@
 package logs
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Log struct {
-	ID                uint      `gorm:"primary_key"`
+	ID                uuid.UUID `gorm:"primary_key;type:uuid;default:uuid_generate_v4()"`
 	Action            string    `gorm:"not null"`
 	Command           string    `gorm:"not null"`
 	Status            string    `gorm:"not null"`
