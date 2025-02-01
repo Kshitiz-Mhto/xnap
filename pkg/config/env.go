@@ -16,6 +16,8 @@ type Config struct {
 	POSTGRES_DB_PASSWORD string
 	POSTGRES_DB_HOST     string
 	POSTGRES_DB_PORT     string
+
+	LOG_DB string
 }
 
 var Envs = initConfig()
@@ -31,6 +33,7 @@ func initConfig() Config {
 		POSTGRES_DB_PASSWORD: getEnv("POSTGRES_DB_PASSWORD", ""),
 		POSTGRES_DB_HOST:     getEnv("POSTGRES_DB_HOST", "http://localhost"),
 		POSTGRES_DB_PORT:     getEnv("POSTGRES_DB_PORT", "5432"),
+		LOG_DB:               getEnv("LOG_DB", "xnap_db"),
 	}
 }
 

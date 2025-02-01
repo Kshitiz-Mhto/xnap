@@ -14,7 +14,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-package cmd
+package cli
 
 import (
 	"fmt"
@@ -22,12 +22,10 @@ import (
 
 	"github.com/Kshitiz-Mhto/xnap/cli/cloud"
 	"github.com/Kshitiz-Mhto/xnap/cli/database"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 var version bool
-var logExt = logrus.New()
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -60,8 +58,4 @@ func init() {
 	rootCmd.AddCommand(cloud.CloudSyncCmd)
 
 	rootCmd.Flags().BoolVarP(&version, "version", "v", false, "Print the version of the CLI")
-
-	logExt.SetFormatter(&logrus.JSONFormatter{})
-	logExt.SetOutput(os.Stdout) // Or configure for a file
-	logExt.SetLevel(logrus.InfoLevel)
 }
