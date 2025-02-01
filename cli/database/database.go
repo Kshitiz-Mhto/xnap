@@ -2,9 +2,16 @@ package database
 
 import (
 	"errors"
+	"fmt"
+	"time"
 
+	"github.com/Kshitiz-Mhto/xnap/cli/logs"
 	"github.com/Kshitiz-Mhto/xnap/pkg/config"
+	"github.com/Kshitiz-Mhto/xnap/utility"
 	"github.com/spf13/cobra"
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 var (
@@ -20,13 +27,18 @@ var (
 )
 
 var (
-	dbName     string
-	dbOwner    string
-	dbType     string
-	dbUser     string
-	dbPassword string
-	promptPass bool
-	schedule   string
+	dbName       string
+	dbOwner      string
+	dbType       string
+	dbUser       string
+	dbPassword   string
+	promptPass   bool
+	schedule     string
+	status       string
+	errorMessage string
+	command      string
+	start        time.Time
+	duration     float64
 )
 
 // DBCmd is the root command for the db subcommand
@@ -79,4 +91,64 @@ func init() {
 
 	dbRestoreCmd.MarkFlagRequired("backup")
 	dbRestoreCmd.MarkFlagsRequiredTogether("type", "user")
+}
+
+func logCommand(dbType, dbUser, dbPassword, host, port, action, command, status, errorMessage string, userName string, duration float64) error {
+	var err error
+
+	logEntry := &logs.Log{
+		Action:            action,
+		Command:           command,
+		Status:            status,
+		ErrorMessage:      errorMessage,
+		UserName:          userName,
+		ExecutionDuration: duration,
+	}
+
+	switch dbType {
+	case "mysql":
+		err = AddLogToMysql(dbUser, dbPassword, host, port, logEntry)
+	case "psql", "postgres":
+		err = AddLogtoPSQL(dbUser, dbPassword, host, port, logEntry)
+	}
+
+	return err
+}
+
+func AddLogToMysql(dbUser, dbPassword, host, port string, logEntry *logs.Log) error {
+	dns := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPassword, host, port, config.Envs.LOG_DB)
+
+	db, err := gorm.Open(mysql.Open(dns), &gorm.Config{})
+	if err != nil {
+		utility.Error("Failed to connect to MySQL: %s", err)
+		return err
+	}
+
+	if err := db.Create(logEntry).Error; err != nil {
+		return err
+	}
+	utility.Success("Log is enteried successfully!!")
+
+	return nil
+}
+
+func AddLogtoPSQL(dbUser, dbPassword, host, port string, logEntry *logs.Log) error {
+	dns := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, dbUser, dbPassword, config.Envs.LOG_DB)
+	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
+	if err != nil {
+		utility.Error("Failed to connect to PSQL: %s", err)
+		return err
+	}
+
+	if err := db.Create(logEntry).Error; err != nil {
+		return err
+	}
+	utility.Success("Log is enteried successfully!!")
+
+	return nil
+}
+
+func SetFailureStatus(msg string) {
+	status = "failure"
+	errorMessage = msg
 }

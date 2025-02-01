@@ -41,6 +41,10 @@ func dbCreateDatabaseBackup(cmd *cobra.Command, args []string) {
 	backupFileNamePath, _ = cmd.Flags().GetString("path")
 	noData, _ = cmd.Flags().GetBool("no-data")
 	noCreateInfo, _ = cmd.Flags().GetBool("no-create-info")
+	start = time.Now()
+	command = strings.Join(os.Args, " ")
+	status = "success"
+	errorMessage = ""
 
 	if promptPass {
 		dbPassword = common.PromptForPassword()
@@ -97,6 +101,12 @@ func performMySQLDatabaseBackup(databaseName, _ string) {
 
 	db, err := gorm.Open(mysql.Open(dns), &gorm.Config{})
 	if err != nil {
+		duration = time.Since(start).Seconds()
+		SetFailureStatus(err.Error())
+		err = logCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
+		if err != nil {
+			utility.Error("Error logging backup command: %v", err)
+		}
 		utility.Error("Failed to connect to MySQL: %s", err)
 		os.Exit(1)
 	}
@@ -105,9 +115,15 @@ func performMySQLDatabaseBackup(databaseName, _ string) {
 
 	utility.Info("Starting backup for %s database '%s'...", utility.Yellow(dbType), utility.Yellow(databaseName))
 
-	// Open the backup file
+	// Open the file for storing backup dump
 	backupFile, err := os.Create(backupFullFilePath)
 	if err != nil {
+		duration = time.Since(start).Seconds()
+		SetFailureStatus(err.Error())
+		err = logCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
+		if err != nil {
+			utility.Error("Error logging backup command: %v", err)
+		}
 		utility.Error("Error creating backup file: %v", err)
 		os.Exit(1)
 	}
@@ -132,6 +148,12 @@ func performMySQLDatabaseBackup(databaseName, _ string) {
 	// Fetch all table names
 	tables := []string{}
 	if err := db.Raw("SHOW TABLES").Scan(&tables).Error; err != nil {
+		duration = time.Since(start).Seconds()
+		SetFailureStatus(err.Error())
+		err = logCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
+		if err != nil {
+			utility.Error("Error logging backup command: %v", err)
+		}
 		utility.Error("Error fetching table list: %v", err)
 		os.Exit(1)
 	}
@@ -139,6 +161,12 @@ func performMySQLDatabaseBackup(databaseName, _ string) {
 	for _, table := range tables {
 		// Lock the table before any operation
 		if err := db.Exec(fmt.Sprintf("LOCK TABLES `%s` READ", table)).Error; err != nil {
+			duration = time.Since(start).Seconds()
+			SetFailureStatus(err.Error())
+			err = logCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
+			if err != nil {
+				utility.Error("Error logging backup command: %v", err)
+			}
 			utility.Error("Error locking table '%s': %v", table, err)
 			os.Exit(1)
 		}
@@ -151,6 +179,12 @@ func performMySQLDatabaseBackup(databaseName, _ string) {
 			backupFile.WriteString("/*!50503 SET character_set_client = utf8mb4 */;\n")
 			var createTableQuery string
 			if err := db.Raw(fmt.Sprintf("SHOW CREATE TABLE `%s`", table)).Row().Scan(&table, &createTableQuery); err != nil {
+				duration = time.Since(start).Seconds()
+				SetFailureStatus(err.Error())
+				err = logCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
+				if err != nil {
+					utility.Error("Error logging backup command: %v", err)
+				}
 				utility.Error("Error fetching schema for table '%s': %v", table, err)
 				os.Exit(1)
 			}
@@ -164,6 +198,12 @@ func performMySQLDatabaseBackup(databaseName, _ string) {
 			backupFile.WriteString(fmt.Sprintf("/*!40000 ALTER TABLE `%s` DISABLE KEYS */;\n", table))
 			rows, err := db.Raw(fmt.Sprintf("SELECT * FROM `%s`", table)).Rows()
 			if err != nil {
+				duration = time.Since(start).Seconds()
+				SetFailureStatus(err.Error())
+				err = logCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
+				if err != nil {
+					utility.Error("Error logging backup command: %v", err)
+				}
 				utility.Error("Error fetching data for table '%s': %v", table, err)
 				os.Exit(1)
 			}
@@ -203,6 +243,12 @@ func performMySQLDatabaseBackup(databaseName, _ string) {
 
 		// Unlock the table after operation
 		if err := db.Exec("UNLOCK TABLES").Error; err != nil {
+			duration = time.Since(start).Seconds()
+			SetFailureStatus(err.Error())
+			err = logCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
+			if err != nil {
+				utility.Error("Error logging backup command: %v", err)
+			}
 			utility.Error("Error unlocking tables: %v", err)
 			os.Exit(1)
 		}
@@ -220,14 +266,26 @@ func performMySQLDatabaseBackup(databaseName, _ string) {
 
 	backupFile.WriteString(fmt.Sprintf("/*  --Dump file generated at %s-- */\n", time.Now().Format(time.RFC1123)))
 
+	duration = time.Since(start).Seconds()
+	err = logCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
+	if err != nil {
+		utility.Error("Error logging backup command: %v", err)
+	}
+
 	utility.Success("Backup completed successfully. File saved at: %s", utility.Yellow(backupFullFilePath))
 }
 
 func performMyPSQLDatabaseBackup(databaseName, _ string) {
-	dns := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s", POSTGRES_DB_HOST, POSTGRES_DB_PORT, dbUser, dbPassword, databaseName)
+	dns := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", POSTGRES_DB_HOST, POSTGRES_DB_PORT, dbUser, dbPassword, databaseName)
 
 	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
 	if err != nil {
+		duration = time.Since(start).Seconds()
+		SetFailureStatus(err.Error())
+		err = logCommand(dbType, dbUser, dbPassword, POSTGRES_DB_HOST, POSTGRES_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
+		if err != nil {
+			utility.Error("Error logging backup command: %v", err)
+		}
 		utility.Error("Failed to connect to PostgreSQL: %s", err)
 		os.Exit(1)
 	}
@@ -239,6 +297,12 @@ func performMyPSQLDatabaseBackup(databaseName, _ string) {
 	// Open the backup file
 	backupFile, err := os.Create(backupFullFilePath)
 	if err != nil {
+		duration = time.Since(start).Seconds()
+		SetFailureStatus(err.Error())
+		err = logCommand(dbType, dbUser, dbPassword, POSTGRES_DB_HOST, POSTGRES_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
+		if err != nil {
+			utility.Error("Error logging backup command: %v", err)
+		}
 		utility.Error("Error creating backup file: %v", err)
 		os.Exit(1)
 	}
@@ -265,6 +329,12 @@ func performMyPSQLDatabaseBackup(databaseName, _ string) {
 	// Fetch all tables
 	tables := []string{}
 	if err := db.Raw("SELECT tablename FROM pg_tables WHERE schemaname='public'").Scan(&tables).Error; err != nil {
+		duration = time.Since(start).Seconds()
+		SetFailureStatus(err.Error())
+		err = logCommand(dbType, dbUser, dbPassword, POSTGRES_DB_HOST, POSTGRES_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
+		if err != nil {
+			utility.Error("Error logging backup command: %v", err)
+		}
 		utility.Error("Error fetching table list: %v", err)
 		os.Exit(1)
 	}
@@ -302,6 +372,12 @@ func performMyPSQLDatabaseBackup(databaseName, _ string) {
 			`, table)
 
 			if err := db.Raw(query).Scan(&createTableQuery).Error; err != nil {
+				duration = time.Since(start).Seconds()
+				SetFailureStatus(err.Error())
+				err = logCommand(dbType, dbUser, dbPassword, POSTGRES_DB_HOST, POSTGRES_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
+				if err != nil {
+					utility.Error("Error logging backup command: %v", err)
+				}
 				utility.Error("Error fetching schema for table '%s': %v", table, err)
 				os.Exit(1)
 			}
@@ -337,6 +413,12 @@ func performMyPSQLDatabaseBackup(databaseName, _ string) {
 			// Fetch the table data and write as COPY format
 			rows, err := db.Raw(fmt.Sprintf("SELECT * FROM \"%s\"", table)).Rows()
 			if err != nil {
+				duration = time.Since(start).Seconds()
+				SetFailureStatus(err.Error())
+				err = logCommand(dbType, dbUser, dbPassword, POSTGRES_DB_HOST, POSTGRES_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
+				if err != nil {
+					utility.Error("Error logging backup command: %v", err)
+				}
 				utility.Error("Error fetching data for table '%s': %v", table, err)
 				os.Exit(1)
 			}
@@ -376,6 +458,13 @@ func performMyPSQLDatabaseBackup(databaseName, _ string) {
 	}
 
 	backupFile.WriteString("\n-- PostgreSQL database dump complete\n")
+
+	duration = time.Since(start).Seconds()
+	err = logCommand(dbType, dbUser, dbPassword, POSTGRES_DB_HOST, POSTGRES_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
+	if err != nil {
+		utility.Error("Error logging backup command: %v", err)
+	}
+
 	utility.Success("Backup completed successfully. File saved at: %s", utility.Yellow(backupFullFilePath))
 }
 

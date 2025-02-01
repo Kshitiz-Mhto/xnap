@@ -1,4 +1,4 @@
-package log
+package logs
 
 import "time"
 
@@ -8,14 +8,10 @@ type Log struct {
 	Command           string    `gorm:"not null"`
 	Status            string    `gorm:"not null"`
 	ErrorMessage      string    `gorm:"type:text"`
-	UserName          *string   `gorm:"index"`
-	ExecutionDuration int       `gorm:"default:0"`
+	UserName          string    `gorm:"index"`
+	ExecutionDuration float64   `gorm:"type:double;default:0"`
 	CreatedAt         time.Time `gorm:"default:current_timestamp"`
 	UpdatedAt         time.Time `gorm:"default:current_timestamp"`
-}
-
-func NewLog() *Log {
-	return &Log{}
 }
 
 func (Log) TableName() string {
