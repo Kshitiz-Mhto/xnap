@@ -16,7 +16,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package main
 
-import "github.com/Kshitiz-Mhto/dsync/cmd"
+import "github.com/Kshitiz-Mhto/xnap/cmd"
 
 func main() {
 	cmd.Execute()
