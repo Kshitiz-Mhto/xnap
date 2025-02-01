@@ -1,24 +1,25 @@
 <h1 align="center">
-    Dsync
+    xnap
 </h1>
 
-**Dsync** is a CLI tool designed to simplify the management and synchronization of data between diverse systems, including databases, cloud storage, and local file systems. It addresses real-world challenges in data migration, automation, and backup by offering secure synchronization, data transformation, scheduling, and task management features.
+**xnap**  is a command-line interface (CLI) tool designed for easy and efficient management of databases and local file backups. It offers a suite of features for maintaining database integrity, performing regular backups, restoring databases and files, and logging all actions to ensure transparency and accountability. This tool is ideal for developers, system administrators, and IT professionals who need reliable backup and restore mechanisms with clear logging capabilities.
 
 ---
 
 ## Key Features
 
-### 1. Multi-Source Data Synchronization
-- **Database Sync**: Synchronize data between databases (e.g., MySQL ↔ MySQL).
-- **Local to Cloud**: Transfer data between local systems and cloud services effortlessly.
-
-### 2. Backup and Restore
+### 1. Backup and Restore
 - **Schema-Only or Data-only**: Create backups for databases with only data or only schema of tables inside database
 - **Scheduled Backups**: Create backups for databases and files on a schedule.
 
+### 2.Database Management
+  - Allows managing databases through simple CLI commands ie `CURD`.
+  - Supports connecting to multiple database types and systems.
+  
 ### 3. Tracking and Logging
-- **Detailed Logs**: Monitor status and troubleshoot with comprehensive logs.
+- **Detailed Logs**: Monitor status and troubleshoot with comprehensive logs ie, includes timestamps, error messages, and additional context for troubleshooting.
 - **Retry Mechanisms**: Track and retry failed tasks automatically.
+- **Alert Mechanism**: Tracks both successful and failed backup and restore processes and sends email alert in case of failure to ensure immediate action can be taken.
 
 ---
 
@@ -55,4 +56,8 @@ This project, `dsync`, is built using the Go programming language. Below is a li
 
 - **Tablewriter**: v0.0.5  
   A Go package for rendering tables in the terminal with customizable options.
+
+- **SMTP Server**:
+  A server for sending, receiving, and relaying outgoing emails between mail servers
+
 
