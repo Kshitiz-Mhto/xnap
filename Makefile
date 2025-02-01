@@ -1,5 +1,5 @@
 # Variables
-BINARY_NAME = dsync
+BINARY_NAME = xnap
 OUTPUT_DIR = bin
 MAIN_FILE = ./main.go
 INSTALL_DIR = $(GOBIN) # Defaults to $HOME/go/bin if GOBIN is unset
