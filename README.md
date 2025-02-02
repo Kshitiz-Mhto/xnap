@@ -60,4 +60,75 @@ This project, `dsync`, is built using the Go programming language. Below is a li
 - **SMTP Server**:
   A server for sending, receiving, and relaying outgoing emails between mail servers
 
+---
 
+## Schemas
+
+### MySQL Tables Schema
+
+- **Logs**
+
+```sql
+CREATE TABLE logs (
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    action VARCHAR(255) NOT NULL,
+    command VARCHAR(255) NOT NULL,
+    status VARCHAR(255) NOT NULL,
+    error_message TEXT,
+    user_name VARCHAR(255),
+    execution_duration DOUBLE DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+- **backups**
+
+```sql
+CREATE TABLE backups (
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    file_name VARCHAR(255) NOT NULL,
+    source_path VARCHAR(255) NOT NULL,
+    backup_path VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+### PSQL Table Schemas
+
+> **_NOTE:_**  If uuid extension not installed.
+
+```sql
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+```
+
+- **logs**
+
+```sql
+CREATE TABLE logs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    action VARCHAR(255) NOT NULL,
+    command VARCHAR(255) NOT NULL,
+    status VARCHAR(255) NOT NULL,
+    error_message TEXT,
+    user_name VARCHAR(255),
+    execution_duration DOUBLE PRECISION DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+- **backups**
+
+```sql
+CREATE TABLE backups (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    file_name VARCHAR(255) NOT NULL,
+    source_path VARCHAR(255) NOT NULL,
+    backup_path VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+```
