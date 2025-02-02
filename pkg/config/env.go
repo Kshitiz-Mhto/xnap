@@ -24,6 +24,8 @@ type Config struct {
 	OWNER_EMAIL       string
 
 	XNAP_DB                  string
+	XNAP_LOGS_TABLE          string
+	XNAP_BACKUP_TABLE        string
 	BACKUP_OR_RESTORE_STATUS string
 }
 
@@ -47,6 +49,8 @@ func initConfig() Config {
 		XNAP_DB:                  getEnv("LOG_DB", "xnap_db"),
 		BACKUP_OR_RESTORE_STATUS: getEnv("BACKUP_OR_RESTORE_STATUS", ""),
 		OWNER_EMAIL:              getEnv("OWNER_EMAIL", ""),
+		XNAP_LOGS_TABLE:          getEnv("XNAP_LOGS_TABLE", "logs"),
+		XNAP_BACKUP_TABLE:        getEnv("XNAP_BACKUP_TABLE", "backups"),
 	}
 }
 
