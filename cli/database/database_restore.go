@@ -91,7 +91,7 @@ func performRestoreForMysql(databaseName, backupFilePath string) {
 	if err != nil {
 		duration = time.Since(start).Seconds()
 		SetFailureStatus(err.Error())
-		err = logCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
+		err = LogCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
 		if err != nil {
 			utility.Error("Error logging backup command: %v", err)
 		}
@@ -102,7 +102,7 @@ func performRestoreForMysql(databaseName, backupFilePath string) {
 	if err = db.Raw("SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?", databaseName).Scan(&dbExist).Error; err != nil {
 		duration = time.Since(start).Seconds()
 		SetFailureStatus(err.Error())
-		err = logCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
+		err = LogCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
 		if err != nil {
 			utility.Error("Error logging backup command: %v", err)
 		}
@@ -115,7 +115,7 @@ func performRestoreForMysql(databaseName, backupFilePath string) {
 		if err := db.Exec(fmt.Sprintf("CREATE DATABASE `%s`", databaseName)).Error; err != nil {
 			duration = time.Since(start).Seconds()
 			SetFailureStatus(err.Error())
-			err = logCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
+			err = LogCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
 			if err != nil {
 				utility.Error("Error logging backup command: %v", err)
 			}
@@ -130,7 +130,7 @@ func performRestoreForMysql(databaseName, backupFilePath string) {
 	if err != nil {
 		duration = time.Since(start).Seconds()
 		SetFailureStatus(err.Error())
-		err = logCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
+		err = LogCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
 		if err != nil {
 			utility.Error("Error logging backup command: %v", err)
 		}
@@ -144,7 +144,7 @@ func performRestoreForMysql(databaseName, backupFilePath string) {
 	if err := commandRestore.Run(); err != nil {
 		duration = time.Since(start).Seconds()
 		SetFailureStatus(err.Error())
-		err = logCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
+		err = LogCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
 		if err != nil {
 			utility.Error("Error logging backup command: %v", err)
 		}
@@ -153,7 +153,7 @@ func performRestoreForMysql(databaseName, backupFilePath string) {
 	}
 
 	duration = time.Since(start).Seconds()
-	err = logCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
+	err = LogCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
 	if err != nil {
 		utility.Error("Error logging backup command: %v", err)
 	}
@@ -169,7 +169,7 @@ func performRestoreForPSQL(databaseName, backupFilePath string) {
 	if err != nil {
 		duration = time.Since(start).Seconds()
 		SetFailureStatus(err.Error())
-		err = logCommand(dbType, dbUser, dbPassword, POSTGRES_DB_HOST, POSTGRES_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
+		err = LogCommand(dbType, dbUser, dbPassword, POSTGRES_DB_HOST, POSTGRES_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
 		if err != nil {
 			utility.Error("Error logging backup command: %v", err)
 		}
@@ -183,7 +183,7 @@ func performRestoreForPSQL(databaseName, backupFilePath string) {
 	if err := commandRestore.Run(); err != nil {
 		duration = time.Since(start).Seconds()
 		SetFailureStatus(err.Error())
-		err = logCommand(dbType, dbUser, dbPassword, POSTGRES_DB_HOST, POSTGRES_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
+		err = LogCommand(dbType, dbUser, dbPassword, POSTGRES_DB_HOST, POSTGRES_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
 		if err != nil {
 			utility.Error("Error logging backup command: %v", err)
 		}
@@ -192,7 +192,7 @@ func performRestoreForPSQL(databaseName, backupFilePath string) {
 	}
 
 	duration = time.Since(start).Seconds()
-	err = logCommand(dbType, dbUser, dbPassword, POSTGRES_DB_HOST, POSTGRES_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
+	err = LogCommand(dbType, dbUser, dbPassword, POSTGRES_DB_HOST, POSTGRES_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
 	if err != nil {
 		utility.Error("Error logging backup command: %v", err)
 	}

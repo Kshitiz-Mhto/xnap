@@ -47,3 +47,26 @@ func PromptForPassword() string {
 	}
 	return string(bytePassword)
 }
+
+func GenerateVersionedFilename(version, filename string) string {
+	// Check if the filename starts with a dot
+	originalHasDotPrefix := strings.HasPrefix(filename, ".")
+
+	// Extract base name and extension
+	ext := ""
+	baseName := filename
+	if dotIndex := strings.LastIndex(filename, "."); dotIndex != -1 && !originalHasDotPrefix {
+		// Only split into baseName and extension if there's no leading dot
+		baseName = filename[:dotIndex]
+		ext = filename[dotIndex:]
+	} else {
+		// If the filename starts with a dot, treat the whole name as base name
+		baseName = filename
+		ext = ""
+	}
+
+	newFilename := fmt.Sprintf("%s_v%s%s", baseName, version, ext)
+
+	// Return the filename with the original leading dot, if present
+	return newFilename
+}

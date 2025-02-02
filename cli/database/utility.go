@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func logCommand(dbType, dbUser, dbPassword, host, port, action, command, status, errorMessage string, userName string, duration float64) error {
+func LogCommand(dbType, dbUser, dbPassword, host, port, action, command, status, errorMessage string, userName string, duration float64) error {
 	var err error
 
 	logEntry := &logs.Log{
