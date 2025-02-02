@@ -37,7 +37,7 @@ func logCommand(dbType, dbUser, dbPassword, host, port, action, command, status,
 func AddLogToMysql(dbUser, dbPassword, host, port string, logEntry *logs.Log) error {
 	var lastLogEntry logs.Log
 
-	dns := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPassword, host, port, config.Envs.XNAP_DB)
+	dns := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", dbUser, dbPassword, host, port, config.Envs.XNAP_DB)
 	db, err := gorm.Open(mysql.Open(dns), &gorm.Config{})
 	if err != nil {
 		utility.Error("Failed to connect to MySQL: %s", err)

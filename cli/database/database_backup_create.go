@@ -66,7 +66,6 @@ func dbCreateDatabaseBackup(cmd *cobra.Command, args []string) {
 		utility.Error("Error resolving backup file path: %v", err)
 		os.Exit(1)
 	}
-
 	switch dbType {
 	case "mysql":
 		dbCreateMySQLDatabaseBackup()
