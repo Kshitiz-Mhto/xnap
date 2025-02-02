@@ -40,7 +40,7 @@ var DBCmd = &cobra.Command{
 	Use:     "database",
 	Aliases: []string{"db", "databases"},
 	Short:   "Manage Databases",
-	Long:    `Create, List and Delete databases`,
+	Long:    `Create, List, Delete databases And backup and restore your database with config only or data only or whole and create dump file also provide feature of scheduling.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		err := cmd.Help()
 		if err != nil {

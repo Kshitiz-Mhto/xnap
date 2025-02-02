@@ -19,7 +19,7 @@ var dbRestoreCmd = &cobra.Command{
 	Use:     "restore",
 	Aliases: []string{"reset", "restores"},
 	Short:   "Restore a database",
-	Example: "xnap db restore <database-name> --type <db-type> --user <db_user> --password --backup <path/to/backup-filename> --schedule <schedule-time>",
+	Example: "xnap db restore <database-name> --type <db-type> --user <db_user> --password --backup <path/to/backup-filename>  --schedule <schedule_HH:MM>",
 	Args:    cobra.ExactArgs(1),
 	Run:     runRestoreCommand,
 }
