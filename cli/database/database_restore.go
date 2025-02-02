@@ -57,6 +57,12 @@ func runRestoreCommandForMySQL(backupFilePath string, schedule string) {
 	// Validate the backup file
 	if _, err := os.Stat(backupFilePath); os.IsNotExist(err) {
 		utility.Error("Backup file does not exist at the specified path: %s", backupFilePath)
+		duration = time.Since(start).Seconds()
+		SetFailureStatus(err.Error())
+		err = LogCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
+		if err != nil {
+			utility.Error("Error logging backup command: %v", err)
+		}
 		os.Exit(1)
 	}
 
@@ -72,6 +78,12 @@ func runRestoreCommandForPSQL(backupFilePath string, schedule string) {
 	// Validate the backup file
 	if _, err := os.Stat(backupFilePath); os.IsNotExist(err) {
 		utility.Error("Backup file does not exist at the specified path: %s", backupFilePath)
+		duration = time.Since(start).Seconds()
+		SetFailureStatus(err.Error())
+		err = LogCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
+		if err != nil {
+			utility.Error("Error logging backup command: %v", err)
+		}
 		os.Exit(1)
 	}
 
