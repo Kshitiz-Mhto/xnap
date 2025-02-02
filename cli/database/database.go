@@ -57,6 +57,7 @@ func init() {
 	DBCmd.AddCommand(dbDeleteCmd)
 	DBCmd.AddCommand(dbBackupCmd)
 	DBCmd.AddCommand(dbRestoreCmd)
+	DBCmd.AddCommand(dbLogCmd)
 
 	dbListCmd.Flags().StringVarP(&dbType, "type", "t", "", "Specify type of database type: `mysql` or `postgres`. [*Required]")
 	dbListCmd.Flags().StringVarP(&dbUser, "user", "u", "", "Database username [*Required]")
