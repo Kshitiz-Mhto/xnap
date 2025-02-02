@@ -9,7 +9,7 @@
 ## Key Features
 
 ### 1. Backup and Restore
-- **Schema-Only or Data-only**: Create backups for databases with only data or only schema of tables inside database
+- **Schema-Only or Data-only**: Create backups for databases with only data or only schema 7database
 - **Scheduled Backups**: Create backups for databases and files on a schedule.
 
 ### 2.Database Management
