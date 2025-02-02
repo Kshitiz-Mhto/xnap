@@ -50,6 +50,8 @@ func deleteBackupListFromMySQL() {
 	}
 	defer utility.CloseDBConnection(db)
 
+	utility.Warning("Starting Deletion process for `%s` table", config.Envs.XNAP_BACKUP_TABLE)
+
 	sql := fmt.Sprintf("DELETE FROM %s", config.Envs.XNAP_BACKUP_TABLE)
 	if err = db.Exec(sql).Error; err != nil {
 		utility.Error("Failed to delete table rows: %v", err)
@@ -68,6 +70,8 @@ func deleteBackupListFromPSQL() {
 		os.Exit(1)
 	}
 	defer utility.CloseDBConnection(db)
+
+	utility.Warning("Starting Deletion process for `%s` table", config.Envs.XNAP_LOGS_TABLE)
 
 	psql := fmt.Sprintf("DELETE FROM %s", config.Envs.XNAP_BACKUP_TABLE)
 	if err = db.Exec(psql).Error; err != nil {

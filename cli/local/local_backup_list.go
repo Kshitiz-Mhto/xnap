@@ -60,7 +60,7 @@ func listBackupListFromMySQL() {
 
 	defer utility.CloseDBConnection(db)
 
-	utility.Info("Listing the backup list from table %s", config.Envs.XNAP_BACKUP_TABLE)
+	utility.Info("Listing the backup list from table `%s`", config.Envs.XNAP_BACKUP_TABLE)
 
 	ow := utility.NewOutputWriter()
 	oi := utility.NewOutputWriter()
@@ -118,7 +118,7 @@ func listBackupListFromPSQL() {
 
 	defer utility.CloseDBConnection(db)
 
-	utility.Info("Listing the backup list from table %s", config.Envs.XNAP_BACKUP_TABLE)
+	utility.Info("Listing the backup list from table `%s`", config.Envs.XNAP_BACKUP_TABLE)
 
 	ow := utility.NewOutputWriter()
 	oi := utility.NewOutputWriter()
@@ -152,5 +152,4 @@ func listBackupListFromPSQL() {
 	}
 
 	ow.FinishAndPrintOutput()
-
 }
