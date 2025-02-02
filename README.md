@@ -14,13 +14,13 @@
 - **Scheduled Restore**: Create Restores for databases and local files on a schedule.
 
 ### 2.Database Management
-  - Allows managing databases through simple CLI commands ie `CURDL`.
+  - Allows managing databases and Logs through simple CLI commands ie `CURDL`.
   - Supports connecting to multiple database types and systems.
   
 ### 3. Logging And Alerting
 - **Detailed Logs**: Monitor status and troubleshoot with comprehensive logs ie, includes timestamps, error messages, and additional context for troubleshooting.
-- **Retry Mechanisms**: Track and retry failed tasks automatically.
 - **Alert Mechanism**: Tracks both successful and failed backup and restore processes and sends email alert in case of failure backup/restore process to ensure immediate action can be taken.
+- **Retry Mechanisms**: Track and retry failed tasks automatically.
 
 ---
 
@@ -71,19 +71,17 @@ DB_HOST=
 PORT=
 
 # MySQLDatabase
-MySQL_DB_USER=
-MySQL_DB_PASSWORD=
 MySQL_DB_HOST=
 MySQL_DB_PORT=
 
 #PostgresDatabase
-POSTGRES_DB_USER=
-POSTGRES_DB_PASSWORD=
 POSTGRES_DB_HOST=
 POSTGRES_DB_PORT=
 
 #xnap DB
 XNAP_DB=
+XNAP_LOGS_TABLE=
+XNAP_BACKUP_TABLE=
 
 #SMTP for Gmail
 FROM_EMAIL=
