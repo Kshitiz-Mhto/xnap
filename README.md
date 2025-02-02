@@ -1,8 +1,8 @@
-<h1 align="center">
-    xnap
-</h1>
+<p align="center">
+  <img src="./assets/logo.png" alt="xnap Logo" width="230">
+</p>
 
-**xnap**  is a command-line interface (CLI) tool designed for easy and efficient management of databases and local file backups. It offers a suite of features for maintaining database integrity, performing regular backups, restoring databases and files, and logging all actions to ensure transparency and accountability. This tool is ideal for developers, system administrators, and IT professionals who need reliable backup and restore mechanisms with clear logging capabilities.
+**xnap**  is a command-line interface (CLI) tool designed for easy and efficient management of databases and local file backups and restoration. It offers a suite of features for maintaining database integrity, performing regular backups, restoring databases and files, and logging all actions to ensure transparency and accountability. This tool is ideal for developers, system administrators, and IT professionals who need reliable backup and restore mechanisms with clear logging capabilities.
 
 ---
 
@@ -27,6 +27,11 @@
 # Project: xnap
 
 This project, `xnap`, is built using the Go programming language. Below is a list of the main technologies, libraries, and dependencies used in this project.
+
+<p align="center">
+  <img src="./assets/xnap_home.png" alt="xnap Logo" width="350">
+</p>
+
 
 ## Technologies and Libraries Used
 
