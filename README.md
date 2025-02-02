@@ -9,23 +9,24 @@
 ## Key Features
 
 ### 1. Backup and Restore
-- **Schema-Only or Data-only**: Create backups for databases with only data or only schema 7database
-- **Scheduled Backups**: Create backups for databases and files on a schedule.
+- **Schema-Only or Data-only dump file**: Create backups dump file either complete dump file or data only or schema only 
+- **Scheduled Backups**: Create backups for databases and local files on a schedule.
+- **Scheduled Restore**: Create Restores for databases and local files on a schedule.
 
 ### 2.Database Management
-  - Allows managing databases through simple CLI commands ie `CURD`.
+  - Allows managing databases through simple CLI commands ie `CURDL`.
   - Supports connecting to multiple database types and systems.
   
-### 3. Tracking and Logging
+### 3. Logging And Alerting
 - **Detailed Logs**: Monitor status and troubleshoot with comprehensive logs ie, includes timestamps, error messages, and additional context for troubleshooting.
 - **Retry Mechanisms**: Track and retry failed tasks automatically.
-- **Alert Mechanism**: Tracks both successful and failed backup and restore processes and sends email alert in case of failure to ensure immediate action can be taken.
+- **Alert Mechanism**: Tracks both successful and failed backup and restore processes and sends email alert in case of failure backup/restore process to ensure immediate action can be taken.
 
 ---
 
-# Project: dsync
+# Project: xnap
 
-This project, `dsync`, is built using the Go programming language. Below is a list of the main technologies, libraries, and dependencies used in this project.
+This project, `xnap`, is built using the Go programming language. Below is a list of the main technologies, libraries, and dependencies used in this project.
 
 ## Technologies and Libraries Used
 
@@ -62,7 +63,40 @@ This project, `dsync`, is built using the Go programming language. Below is a li
 
 ---
 
-## Schemas
+## Environment Variables
+
+```env
+# Server
+DB_HOST=
+PORT=
+
+# MySQLDatabase
+MySQL_DB_USER=
+MySQL_DB_PASSWORD=
+MySQL_DB_HOST=
+MySQL_DB_PORT=
+
+#PostgresDatabase
+POSTGRES_DB_USER=
+POSTGRES_DB_PASSWORD=
+POSTGRES_DB_HOST=
+POSTGRES_DB_PORT=
+
+#xnap DB
+XNAP_DB=
+
+#SMTP for Gmail
+FROM_EMAIL=
+FROM_EMAIL_PASSWORD="use passkey"
+FROM_EMAIL_SMTP="smtp.gmail.com"
+SMTP_ADDR=""smtp.gmail.com:587"
+OWNER_EMAIL=
+
+#Variables
+BACKUP_OR_RESTORE_STATUS="failure"
+```
+
+## xnap Database Schemas 
 
 ### MySQL Tables Schema
 
@@ -86,10 +120,11 @@ CREATE TABLE logs (
 
 ```sql
 CREATE TABLE backups (
-    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    file_name VARCHAR(255) NOT NULL,
-    source_path VARCHAR(255) NOT NULL,
-    backup_path VARCHAR(255) NOT NULL,
+    id BINARY(16) PRIMARY KEY DEFAULT (UUID_TO_BIN(UUID())),
+    file_name VARCHAR(255) NOT NULL UNIQUE,
+    source_path TEXT NOT NULL,
+    backup_path TEXT NOT NULL,
+    og_file_name TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -124,11 +159,11 @@ CREATE TABLE logs (
 ```sql
 CREATE TABLE backups (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    file_name VARCHAR(255) NOT NULL,
-    source_path VARCHAR(255) NOT NULL,
-    backup_path VARCHAR(255) NOT NULL,
+    file_name VARCHAR(255) NOT NULL UNIQUE,
+    source_path TEXT NOT NULL,
+    backup_path TEXT NOT NULL,
+    og_file_name TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
 ```
