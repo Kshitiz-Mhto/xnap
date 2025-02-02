@@ -33,7 +33,7 @@ func init() {
 	dbBackupCreateCmd.Flags().Bool("no-data", false, "Exclude data from the backup (default: false)")
 	dbBackupCreateCmd.Flags().Bool("no-create-info", false, "Exclude table schema from the backup (default: false)")
 	dbBackupCreateCmd.Flags().StringVarP(&schedule, "schedule", "s", "", "schedule backup of database")
-	dbBackupCreateCmd.Flags().StringVarP(&dbUser, "user", "u", dbUser, "Database username")
+	dbBackupCreateCmd.Flags().StringVarP(&dbUser, "user", "u", "", "Database username")
 	dbBackupCreateCmd.Flags().BoolVarP(&promptPass, "password", "p", false, "Prompt for password (no inline input)")
 
 	dbBackupCreateCmd.MarkFlagsRequiredTogether("type", "user")
