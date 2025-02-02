@@ -89,37 +89,37 @@ func performRestoreForMysql(databaseName, backupFilePath string) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/", dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
+		utility.Error("Failed to connect to MySQL: %s", err)
 		duration = time.Since(start).Seconds()
 		SetFailureStatus(err.Error())
 		err = LogCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
 		if err != nil {
 			utility.Error("Error logging backup command: %v", err)
 		}
-		utility.Error("Failed to connect to MySQL: %s", err)
 		os.Exit(1)
 	}
 
 	if err = db.Raw("SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?", databaseName).Scan(&dbExist).Error; err != nil {
+		utility.Error("Failed to check if database exists: %v", err)
 		duration = time.Since(start).Seconds()
 		SetFailureStatus(err.Error())
 		err = LogCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
 		if err != nil {
 			utility.Error("Error logging backup command: %v", err)
 		}
-		utility.Error("Failed to check if database exists: %v", err)
 		os.Exit(1)
 	}
 
 	if dbExist == 0 {
 		utility.Info("Database '%s' does not exist. Creating it now...", utility.Yellow(databaseName))
 		if err := db.Exec(fmt.Sprintf("CREATE DATABASE `%s`", databaseName)).Error; err != nil {
+			utility.Error("Failed to create database '%s': %v", databaseName, err)
 			duration = time.Since(start).Seconds()
 			SetFailureStatus(err.Error())
 			err = LogCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
 			if err != nil {
 				utility.Error("Error logging backup command: %v", err)
 			}
-			utility.Error("Failed to create database '%s': %v", databaseName, err)
 			os.Exit(1)
 		}
 		utility.Success("Database '%s' created successfully.", databaseName)
@@ -128,13 +128,13 @@ func performRestoreForMysql(databaseName, backupFilePath string) {
 	commandRestore := exec.Command("mysql", "-u", dbUser, "-p"+dbPassword, databaseName)
 	backupFile, err := os.Open(backupFilePath)
 	if err != nil {
+		utility.Error("Failed to open backup file: %v", err)
 		duration = time.Since(start).Seconds()
 		SetFailureStatus(err.Error())
 		err = LogCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
 		if err != nil {
 			utility.Error("Error logging backup command: %v", err)
 		}
-		utility.Error("Failed to open backup file: %v", err)
 		os.Exit(1)
 	}
 	defer backupFile.Close()
@@ -142,13 +142,13 @@ func performRestoreForMysql(databaseName, backupFilePath string) {
 	commandRestore.Stdin = backupFile
 
 	if err := commandRestore.Run(); err != nil {
+		utility.Error("Restore process failed: %v", err)
 		duration = time.Since(start).Seconds()
 		SetFailureStatus(err.Error())
 		err = LogCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
 		if err != nil {
 			utility.Error("Error logging backup command: %v", err)
 		}
-		utility.Error("Restore process failed: %v", err)
 		os.Exit(1)
 	}
 
@@ -167,13 +167,13 @@ func performRestoreForPSQL(databaseName, backupFilePath string) {
 	commandRestore := exec.Command("psql", "-u", dbUser, "-p"+dbPassword, databaseName)
 	backupFile, err := os.Open(backupFilePath)
 	if err != nil {
+		utility.Error("Failed to open backup file: %v", err)
 		duration = time.Since(start).Seconds()
 		SetFailureStatus(err.Error())
 		err = LogCommand(dbType, dbUser, dbPassword, POSTGRES_DB_HOST, POSTGRES_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
 		if err != nil {
 			utility.Error("Error logging backup command: %v", err)
 		}
-		utility.Error("Failed to open backup file: %v", err)
 		os.Exit(1)
 	}
 	defer backupFile.Close()
@@ -181,13 +181,13 @@ func performRestoreForPSQL(databaseName, backupFilePath string) {
 	commandRestore.Stdin = backupFile
 
 	if err := commandRestore.Run(); err != nil {
+		utility.Error("Restore process failed: %v", err)
 		duration = time.Since(start).Seconds()
 		SetFailureStatus(err.Error())
 		err = LogCommand(dbType, dbUser, dbPassword, POSTGRES_DB_HOST, POSTGRES_DB_PORT, "restore", command, status, errorMessage, dbUser, duration)
 		if err != nil {
 			utility.Error("Error logging backup command: %v", err)
 		}
-		utility.Error("Restore process failed: %v", err)
 		os.Exit(1)
 	}
 

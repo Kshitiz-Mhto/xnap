@@ -58,23 +58,23 @@ func init() {
 	DBCmd.AddCommand(dbBackupCmd)
 	DBCmd.AddCommand(dbRestoreCmd)
 
-	dbListCmd.Flags().StringVarP(&dbType, "type", "t", "", "Database type: mysql or postgres")
-	dbListCmd.Flags().StringVarP(&dbUser, "user", "u", "", "Database username")
+	dbListCmd.Flags().StringVarP(&dbType, "type", "t", "", "Specify type of database type: `mysql` or `postgres`. [*Required]")
+	dbListCmd.Flags().StringVarP(&dbUser, "user", "u", "", "Database username [*Required]")
 	dbListCmd.Flags().BoolVarP(&promptPass, "password", "p", false, "Prompt for password (no inline input)")
 
-	dbCreateCmd.Flags().StringVarP(&dbType, "type", "t", "mysql", "Create database type MySQL")
+	dbCreateCmd.Flags().StringVarP(&dbType, "type", "t", "mysql", "Specify the type of database; use `mysql` or `psql`. [*Required]")
 	dbCreateCmd.Flags().StringVarP(&dbOwner, "owner", "o", "postgres", "Specify owner only for postgres database")
-	dbCreateCmd.Flags().StringVarP(&dbUser, "user", "u", "", "Database username")
+	dbCreateCmd.Flags().StringVarP(&dbUser, "user", "u", "", "Database username [*Required]")
 	dbCreateCmd.Flags().BoolVarP(&promptPass, "password", "p", false, "Prompt for password (no inline input)")
 
-	dbDeleteCmd.Flags().StringVarP(&dbType, "type", "t", "", "Specify the database type for deletion")
-	dbDeleteCmd.Flags().StringVarP(&dbUser, "user", "u", "", "Database username")
+	dbDeleteCmd.Flags().StringVarP(&dbType, "type", "t", "", "Specify the database type for deletion [*Required]")
+	dbDeleteCmd.Flags().StringVarP(&dbUser, "user", "u", "", "Database username [*Required]")
 	dbDeleteCmd.Flags().BoolVarP(&promptPass, "password", "p", false, "Prompt for password (no inline input)")
 
-	dbRestoreCmd.Flags().StringVarP(&backupFullFilePath, "backup", "b", "", "Path to the backup file (required)")
+	dbRestoreCmd.Flags().StringVarP(&backupFullFilePath, "backup", "b", "", "Path to the backup file [*Required]")
 	dbRestoreCmd.Flags().StringVarP(&schedule, "schedule", "s", "", "Time to schedule the restoration (in a format like HH:MM or a cron-like string)")
-	dbRestoreCmd.Flags().StringVarP(&dbType, "type", "t", "", "Specify the database type for restoration")
-	dbRestoreCmd.Flags().StringVarP(&dbUser, "user", "u", "", "Database username")
+	dbRestoreCmd.Flags().StringVarP(&dbType, "type", "t", "", "Specify the database type for restoration [*Required]")
+	dbRestoreCmd.Flags().StringVarP(&dbUser, "user", "u", "", "Database username [*Required]")
 	dbRestoreCmd.Flags().BoolVarP(&promptPass, "password", "p", false, "Prompt for password (no inline input)")
 
 	dbListCmd.MarkFlagsRequiredTogether("type", "user")
