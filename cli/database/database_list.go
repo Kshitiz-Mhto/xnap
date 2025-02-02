@@ -67,6 +67,11 @@ func listMySQLDatabases() {
 	oi.AppendDataWithLabel("type", "MySQL", "DB_TYPE")
 	oi.FinishAndPrintOutput()
 
+	if databases == nil {
+		utility.Error("databases is empty")
+		os.Exit(1)
+	}
+
 	for _, dbName := range databases {
 
 		ow.StartLine()
@@ -106,6 +111,11 @@ func listPostgresDatabases() {
 	oi.AppendDataWithLabel("port", POSTGRES_DB_PORT, "DB_PORT")
 	oi.AppendDataWithLabel("type", "PostgreSQL", "DB_TYPE")
 	oi.FinishAndPrintOutput()
+
+	if databases == nil {
+		utility.Error("databases is empty")
+		os.Exit(1)
+	}
 
 	for _, dbName := range databases {
 
