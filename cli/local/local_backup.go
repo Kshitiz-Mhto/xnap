@@ -3,7 +3,6 @@ package local
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -90,7 +89,7 @@ func performLocalBackupWithMySQL(databaseName, _ string) {
 	defer utility.CloseDBConnection(db)
 	utility.Info("Starting backup for %s file ...", utility.Yellow(filename))
 
-	err = performLocalBackup(sourcePath, backupDirPath)
+	err = PerformLocalBackup(sourcePath, backupDirPath)
 	if err != nil {
 		duration = time.Since(start).Seconds()
 		database.SetFailureStatus(err.Error())
@@ -148,7 +147,7 @@ func performLocalBackupWithPSQL(databaseName, _ string) {
 	defer utility.CloseDBConnection(db)
 	utility.Info("Starting backup for %s file ...", utility.Yellow(filename))
 
-	err = performLocalBackup(sourcePath, backupDirPath)
+	err = PerformLocalBackup(sourcePath, backupDirPath)
 	if err != nil {
 		duration = time.Since(start).Seconds()
 		database.SetFailureStatus(err.Error())
@@ -238,35 +237,4 @@ func scheduleLocalBackup(databaseName, schedule string) {
 	case <-ctx.Done():
 		utility.Info("Backup process was canceled.")
 	}
-}
-
-func performLocalBackup(sourcePath, backupFolderPath string) error {
-	backupFullPath := filepath.Join(backupFolderPath, filename)
-
-	// Ensure the backup folder exists, create it if not
-	err := os.MkdirAll(backupFolderPath, os.ModePerm)
-	if err != nil {
-		return fmt.Errorf("failed to create backup folder: %v", err)
-	}
-
-	sourceFile, err := os.Open(sourcePath)
-	if err != nil {
-		return fmt.Errorf("failed to open source file: %v", err)
-	}
-	defer sourceFile.Close()
-
-	backupFile, err := os.Create(backupFullPath)
-	if err != nil {
-		return fmt.Errorf("failed to create backup file: %v", err)
-	}
-	defer backupFile.Close()
-
-	_, err = io.Copy(backupFile, sourceFile)
-	if err != nil {
-		return fmt.Errorf("failed to copy file content: %v", err)
-	}
-
-	utility.Success("%s is backup at location %s", utility.Yellow(filename), utility.Yellow(backupFullPath))
-
-	return nil
 }

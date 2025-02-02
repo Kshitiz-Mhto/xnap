@@ -2,6 +2,7 @@ package local
 
 import (
 	"os"
+	"strings"
 	"time"
 
 	"github.com/Kshitiz-Mhto/xnap/utility"
@@ -20,6 +21,7 @@ var LocalRestoreCmd = &cobra.Command{
 
 func runLocalRestoreCommand(cmd *cobra.Command, args []string) {
 	restorePath, _ = cmd.Flags().GetString("path")
+	command = strings.Join(os.Args, " ")
 	start = time.Now()
 	status = "success"
 	errorMessage = ""

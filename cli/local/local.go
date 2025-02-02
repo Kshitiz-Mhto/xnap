@@ -2,10 +2,15 @@ package local
 
 import (
 	"errors"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
 	"github.com/Kshitiz-Mhto/xnap/pkg/config"
+	"github.com/Kshitiz-Mhto/xnap/utility"
 	"github.com/spf13/cobra"
 )
 
@@ -67,4 +72,35 @@ func init() {
 	LocalBackupCmd.Flags().StringVarP(&versionNum, "version", "v", "", "Specify the backup version of your file")
 
 	LocalBackupCmd.MarkFlagsRequiredTogether("type", "user", "source", "path", "version")
+}
+
+func PerformLocalBackup(sourcePath, backupFolderPath string) error {
+	backupFullPath := filepath.Join(backupFolderPath, filename)
+
+	// Ensure the backup folder exists, create it if not
+	err := os.MkdirAll(backupFolderPath, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("failed to create backup folder: %v", err)
+	}
+
+	sourceFile, err := os.Open(sourcePath)
+	if err != nil {
+		return fmt.Errorf("failed to open source file: %v", err)
+	}
+	defer sourceFile.Close()
+
+	backupFile, err := os.Create(backupFullPath)
+	if err != nil {
+		return fmt.Errorf("failed to create backup file: %v", err)
+	}
+	defer backupFile.Close()
+
+	_, err = io.Copy(backupFile, sourceFile)
+	if err != nil {
+		return fmt.Errorf("failed to copy file content: %v", err)
+	}
+
+	utility.Success("%s is backup at location %s", utility.Yellow(filename), utility.Yellow(backupFullPath))
+
+	return nil
 }
