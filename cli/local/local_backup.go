@@ -35,6 +35,9 @@ func runLocalBackupCommand(cmd *cobra.Command, args []string) {
 	status = "success"
 	errorMessage = ""
 
+	sourcePath, _ = filepath.Abs(sourcePath)
+	backupDirPath, _ = filepath.Abs(backupDirPath)
+
 	if promptPass {
 		dbPassword = common.PromptForPassword()
 	} else {
@@ -71,51 +74,52 @@ func runLocalBackupWithPSQL() {
 
 func performLocalBackupWithMySQL(databaseName, _ string) {
 	dns := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=True", dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, databaseName)
-	filename = filepath.Base(sourcePath)
-	filename = common.GenerateVersionedFilename(versionNum, filename)
+	fileName := filepath.Base(sourcePath)
+	filename = common.GenerateVersionedFilename(versionNum, fileName)
 
 	db, err := gorm.Open(mysql.Open(dns), &gorm.Config{})
 	if err != nil {
+		utility.Error("Failed to connect to MySQL: %s", err)
 		duration = time.Since(start).Seconds()
-		database.SetFailureStatus(err.Error())
+		SetFailureStatus(err.Error())
 		err = database.LogCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
 		if err != nil {
 			utility.Error("Error logging backup command: %v", err)
 		}
-		utility.Error("Failed to connect to MySQL: %s", err)
 		os.Exit(1)
 	}
 
 	defer utility.CloseDBConnection(db)
 	utility.Info("Starting backup for %s file ...", utility.Yellow(filename))
 
-	err = PerformLocalBackup(sourcePath, backupDirPath)
-	if err != nil {
-		duration = time.Since(start).Seconds()
-		database.SetFailureStatus(err.Error())
-		err = database.LogCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
-		if err != nil {
-			utility.Error("Error logging backup command: %v", err.Error())
-		}
-		utility.Error("%v", err.Error())
-		os.Exit(1)
-	}
-
 	backupRecord := Backup{
 		FileName:   filename,
 		SourcePath: sourcePath,
 		BackupPath: backupDirPath,
+		OgFileName: fileName,
 	}
 
 	err = db.Create(&backupRecord).Error
 	if err != nil {
+		utility.Error("Failed to insert backup record: %v", err)
 		duration = time.Since(start).Seconds()
-		database.SetFailureStatus(err.Error())
+		SetFailureStatus(err.Error())
 		err = database.LogCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
 		if err != nil {
 			utility.Error("Error logging backup command: %v", err.Error())
 		}
-		utility.Error("Failed to insert backup record: %v", err)
+		os.Exit(1)
+	}
+
+	err = PerformLocalBackup(sourcePath, backupDirPath)
+	if err != nil {
+		utility.Error("%v", err.Error())
+		duration = time.Since(start).Seconds()
+		SetFailureStatus(err.Error())
+		err = database.LogCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
+		if err != nil {
+			utility.Error("Error logging backup command: %v", err.Error())
+		}
 		os.Exit(1)
 	}
 
@@ -129,51 +133,52 @@ func performLocalBackupWithMySQL(databaseName, _ string) {
 }
 func performLocalBackupWithPSQL(databaseName, _ string) {
 	dns := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", POSTGRES_DB_HOST, POSTGRES_DB_PORT, dbUser, dbPassword, databaseName)
-	filename = filepath.Base(sourcePath)
-	filename = common.GenerateVersionedFilename(versionNum, filename)
+	fileName := filepath.Base(sourcePath)
+	filename = common.GenerateVersionedFilename(versionNum, fileName)
 
 	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
 	if err != nil {
+		utility.Error("Failed to connect to MySQL: %s", err)
 		duration = time.Since(start).Seconds()
-		database.SetFailureStatus(err.Error())
+		SetFailureStatus(err.Error())
 		err = database.LogCommand(dbType, dbUser, dbPassword, POSTGRES_DB_HOST, POSTGRES_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
 		if err != nil {
 			utility.Error("Error logging backup command: %v", err)
 		}
-		utility.Error("Failed to connect to MySQL: %s", err)
 		os.Exit(1)
 	}
 
 	defer utility.CloseDBConnection(db)
 	utility.Info("Starting backup for %s file ...", utility.Yellow(filename))
 
-	err = PerformLocalBackup(sourcePath, backupDirPath)
-	if err != nil {
-		duration = time.Since(start).Seconds()
-		database.SetFailureStatus(err.Error())
-		err = database.LogCommand(dbType, dbUser, dbPassword, POSTGRES_DB_HOST, POSTGRES_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
-		if err != nil {
-			utility.Error("Error logging backup command: %v", err.Error())
-		}
-		utility.Error("%v", err.Error())
-		os.Exit(1)
-	}
-
 	backupRecord := Backup{
 		FileName:   filename,
 		SourcePath: sourcePath,
 		BackupPath: backupDirPath,
+		OgFileName: fileName,
 	}
 
 	err = db.Create(&backupRecord).Error
 	if err != nil {
+		utility.Error("Failed to insert backup record: %v", err)
 		duration = time.Since(start).Seconds()
-		database.SetFailureStatus(err.Error())
+		SetFailureStatus(err.Error())
 		err = database.LogCommand(dbType, dbUser, dbPassword, POSTGRES_DB_HOST, POSTGRES_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
 		if err != nil {
 			utility.Error("Error logging backup command: %v", err.Error())
 		}
-		utility.Error("Failed to insert backup record: %v", err)
+		os.Exit(1)
+	}
+
+	err = PerformLocalBackup(sourcePath, backupDirPath)
+	if err != nil {
+		utility.Error("%v", err.Error())
+		duration = time.Since(start).Seconds()
+		SetFailureStatus(err.Error())
+		err = database.LogCommand(dbType, dbUser, dbPassword, POSTGRES_DB_HOST, POSTGRES_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
+		if err != nil {
+			utility.Error("Error logging backup command: %v", err.Error())
+		}
 		os.Exit(1)
 	}
 

@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sync"
 	"time"
 
@@ -27,22 +28,24 @@ var (
 )
 
 var (
-	dbType        string
-	dbUser        string
-	dbPassword    string
-	backupDirPath string
-	sourcePath    string
-	restorePath   string
-	filename      string
-	versionNum    string
-	promptPass    bool
-	schedule      string
-	status        string
-	errorMessage  string
-	command       string
-	start         time.Time
-	duration      float64
-	WG            sync.WaitGroup
+	dbType           string
+	dbUser           string
+	dbPassword       string
+	backupDirPath    string
+	sourcePath       string
+	restorePath      string
+	filename         string
+	versionNum       string
+	promptPass       bool
+	schedule         string
+	status           string
+	errorMessage     string
+	command          string
+	start            time.Time
+	duration         float64
+	WG               sync.WaitGroup
+	filenamePattern1 *regexp.Regexp
+	filenamePattern2 *regexp.Regexp
 )
 
 var LocalCMD = &cobra.Command{
@@ -63,14 +66,23 @@ func init() {
 	LocalCMD.AddCommand(LocalBackupCmd)
 	LocalCMD.AddCommand(LocalRestoreCmd)
 
-	LocalBackupCmd.Flags().StringVarP(&backupDirPath, "path", "P", ".", "Location of the backup storage")
-	LocalBackupCmd.Flags().StringVarP(&sourcePath, "source", "S", "", "Complete file path")
+	LocalBackupCmd.Flags().StringVarP(&backupDirPath, "path", "P", "", "Location of the backup storage [*Required]")
+	LocalBackupCmd.Flags().StringVarP(&sourcePath, "source", "S", "", "Complete file path [*Required]")
 	LocalBackupCmd.Flags().StringVarP(&schedule, "schedule", "s", "", "Schedule backup of database")
-	LocalBackupCmd.Flags().StringVarP(&dbUser, "user", "u", "", "Database username")
+	LocalBackupCmd.Flags().StringVarP(&dbUser, "user", "u", "", "Database username  [*Required]")
 	LocalBackupCmd.Flags().BoolVarP(&promptPass, "password", "p", false, "Prompt for password (no inline input)")
-	LocalBackupCmd.Flags().StringVarP(&dbType, "type", "t", "", "Specify the type of database( Required)")
-	LocalBackupCmd.Flags().StringVarP(&versionNum, "version", "v", "", "Specify the backup version of your file")
+	LocalBackupCmd.Flags().StringVarP(&dbType, "type", "t", "", "Specify the type of database  [*Required]")
+	LocalBackupCmd.Flags().StringVarP(&versionNum, "version", "v", "", "Specify the backup version of your file [*Required]")
 
+	LocalRestoreCmd.Flags().StringVarP(&schedule, "schedule", "s", "", "Schedule backup of database")
+	LocalRestoreCmd.Flags().StringVarP(&dbUser, "user", "u", "", "Database username [*Required]")
+	LocalRestoreCmd.Flags().BoolVarP(&promptPass, "password", "p", false, "Prompt for password (no inline input)")
+	LocalRestoreCmd.Flags().StringVarP(&filename, "file", "f", "", "Original file name [*Required]")
+	LocalRestoreCmd.Flags().StringVarP(&restorePath, "path", "P", "", "Location of the backup storage [*Required]")
+	LocalRestoreCmd.Flags().StringVarP(&dbType, "type", "t", "", "Specify the type of database [*Required]")
+	LocalRestoreCmd.Flags().StringVarP(&versionNum, "version", "v", "", "Specify the backup version of your file [*Required]")
+
+	LocalRestoreCmd.MarkFlagsRequiredTogether("type", "user", "path", "file", "version")
 	LocalBackupCmd.MarkFlagsRequiredTogether("type", "user", "source", "path", "version")
 }
 
@@ -103,4 +115,13 @@ func PerformLocalBackup(sourcePath, backupFolderPath string) error {
 	utility.Success("%s is backup at location %s", utility.Yellow(filename), utility.Yellow(backupFullPath))
 
 	return nil
+}
+
+func SetFailureStatus(msg string) {
+	status = "failure"
+	errorMessage = msg
+}
+
+func CheckVersionMatch(fileVersion, targetVersion string) bool {
+	return fileVersion == targetVersion
 }
