@@ -23,7 +23,7 @@ type Config struct {
 	SMTPAddress       string
 	OWNER_EMAIL       string
 
-	LOG_DB                   string
+	XNAP_DB                  string
 	BACKUP_OR_RESTORE_STATUS string
 }
 
@@ -44,7 +44,7 @@ func initConfig() Config {
 		FromEmailPassword:        getEnv("FROM_EMAIL_PASSWORD", ""),
 		FromEmailSMTP:            getEnv("FROM_EMAIL_SMTP", "smtp.gmail.com"),
 		SMTPAddress:              getEnv("SMTP_ADDR", "smtp.gmail.com:587"),
-		LOG_DB:                   getEnv("LOG_DB", "xnap_db"),
+		XNAP_DB:                  getEnv("LOG_DB", "xnap_db"),
 		BACKUP_OR_RESTORE_STATUS: getEnv("BACKUP_OR_RESTORE_STATUS", ""),
 		OWNER_EMAIL:              getEnv("OWNER_EMAIL", ""),
 	}

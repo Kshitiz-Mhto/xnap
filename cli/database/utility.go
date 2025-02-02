@@ -37,12 +37,14 @@ func logCommand(dbType, dbUser, dbPassword, host, port, action, command, status,
 func AddLogToMysql(dbUser, dbPassword, host, port string, logEntry *logs.Log) error {
 	var lastLogEntry logs.Log
 
-	dns := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPassword, host, port, config.Envs.LOG_DB)
+	dns := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPassword, host, port, config.Envs.XNAP_DB)
 	db, err := gorm.Open(mysql.Open(dns), &gorm.Config{})
 	if err != nil {
 		utility.Error("Failed to connect to MySQL: %s", err)
 		return err
 	}
+
+	defer utility.CloseDBConnection(db)
 
 	if err := db.Create(logEntry).Error; err != nil {
 		return err
@@ -75,12 +77,14 @@ func AddLogToMysql(dbUser, dbPassword, host, port string, logEntry *logs.Log) er
 func AddLogtoPSQL(dbUser, dbPassword, host, port string, logEntry *logs.Log) error {
 	var lastLogEntry logs.Log
 
-	dns := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, dbUser, dbPassword, config.Envs.LOG_DB)
+	dns := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, dbUser, dbPassword, config.Envs.XNAP_DB)
 	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
 	if err != nil {
 		utility.Error("Failed to connect to PSQL: %s", err)
 		return err
 	}
+
+	defer utility.CloseDBConnection(db)
 
 	if err := db.Create(logEntry).Error; err != nil {
 		return err

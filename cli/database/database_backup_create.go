@@ -29,7 +29,7 @@ var (
 var dbBackupCreateCmd = &cobra.Command{
 	Use:     "create",
 	Aliases: []string{"new", "add"},
-	Example: "xnap db backup create <db-name> --type <db-type> --user <db_user> --password --name <backup-filename> --path <path/to/>   --schedule <schedule_HH:MM> --no-data --no-create-info",
+	Example: "xnap db backup create <db-name> --type <db-type> --user <db_user> --password --name <backup-filename> --path <path/to/> --schedule <schedule_HH:MM> --no-data --no-create-info",
 	Short:   "Create a new database backup",
 	Args:    cobra.ExactArgs(1),
 	Run:     dbCreateDatabaseBackup,
