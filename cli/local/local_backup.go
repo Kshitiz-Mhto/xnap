@@ -20,6 +20,7 @@ import (
 
 var LocalBackupCmd = &cobra.Command{
 	Use:     "backup",
+	Aliases: []string{"bk", "backups"},
 	Short:   "Backup the file from local storage",
 	Long:    "Backup the file by copying it to backup locationa and store the file path in database as reference",
 	Example: "xnap local backup --type <database_type> -u <username> -p --source </to/path/file> --path </to/path/backup_location> --version <version_number> --schedule <schedule_HH:MM>",
@@ -242,4 +243,21 @@ func scheduleLocalBackup(databaseName, schedule string) {
 	case <-ctx.Done():
 		utility.Info("Backup process was canceled.")
 	}
+}
+
+func init() {
+	LocalBackupCmd.AddCommand(localBackupListCmd)
+	LocalBackupCmd.AddCommand(localBackupListDeletionCmd)
+
+	localBackupListCmd.Flags().StringVarP(&dbType, "type", "t", "", "specify the type of database [*Required]")
+	localBackupListCmd.Flags().StringVarP(&dbUser, "user", "u", "", "Database username [*Required]")
+	localBackupListCmd.Flags().BoolVarP(&promptPass, "password", "p", false, "Prompt for password (no inline input)")
+
+	localBackupListDeletionCmd.Flags().StringVarP(&dbType, "type", "t", "", "specify the type of database [*Required]")
+	localBackupListDeletionCmd.Flags().StringVarP(&dbUser, "user", "u", "", "Database username [*Required]")
+	localBackupListDeletionCmd.Flags().BoolVarP(&promptPass, "password", "p", false, "Prompt for password (no inline input)")
+
+	localBackupListDeletionCmd.MarkFlagsRequiredTogether("type", "user")
+
+	localBackupListCmd.MarkFlagsRequiredTogether("type", "user")
 }
