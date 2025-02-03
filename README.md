@@ -32,6 +32,55 @@ This project, `xnap`, is built using the Go programming language. Below is a lis
   <img src="./assets/xnap_home.png" alt="xnap Logo" width="800">
 </p>
 
+### *Brief Command Screenshot*
+
+> *Database*
+
+<p align="center">
+  <img src="./assets/db.png" alt="xnap Logo" width="800">
+</p>
+
+> *Database backup*
+
+<p align="center">
+  <img src="./assets/db_backup_create.png" alt="xnap Logo" width="800">
+</p>
+
+> *Database restore*
+
+<p align="center">
+  <img src="./assets/db_restore.png" alt="xnap Logo" width="800">
+</p>
+
+> *Backup and Restore Logs*
+
+<p align="center">
+  <img src="./assets/db_log_ls.png" alt="xnap Logo" width="800">
+</p>
+
+
+<p align="center">
+  <img src="./assets/db_log_rm.png" alt="xnap Logo" width="800">
+</p>
+
+> *Local Storage*
+
+<p align="center">
+  <img src="./assets/local.png" alt="xnap Logo" width="800">
+</p>
+
+> *Local file Backup*
+
+<p align="center">
+  <img src="./assets/local_backup.png" alt="xnap Logo" width="800">
+</p>
+
+> *Local file Restoration*
+
+<p align="center">
+  <img src="./assets/local_restore.png" alt="xnap Logo" width="800">
+</p>
+
 
 ## Technologies and Libraries Used
 
