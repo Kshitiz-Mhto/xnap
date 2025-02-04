@@ -12,6 +12,7 @@
 - **Schema-Only or Data-only dump file**: Create backups dump file either complete dump file or data only or schema only 
 - **Scheduled Backups**: Create backups for databases and local files on a schedule.
 - **Scheduled Restore**: Create Restores for databases and local files on a schedule.
+- **Versioning Backups**: Provide custom versioning for backup local files.
 
 ### 2.Database Management
   - Allows managing databases and Logs through simple CLI commands ie `CURDL`.
