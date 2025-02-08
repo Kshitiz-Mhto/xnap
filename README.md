@@ -30,7 +30,7 @@
 This project, `xnap`, is built using the Go programming language. Below is a list of the main technologies, libraries, and dependencies used in this project.
 
 <p align="center">
-  <img src="./assets/xnap_home.png" alt="xnap Logo" width="800">
+  <img src="./assets/home.png" alt="xnap Logo" width="800">
 </p>
 
 ### *Brief Command Screenshot*
