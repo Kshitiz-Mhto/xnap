@@ -14,6 +14,10 @@
 - **Scheduled Restore**: Create Restores for databases and local files on a schedule.
 - **Versioning Backups**: Provide custom versioning for backup local files.
 
+## 2. Encryption/Decryption and Compression/Decompression
+- **Security**: Uses AES for cryptographic securitry
+- **Compression/Decompression**: Uses zip or tar for compression and decompression internally
+
 ### 2.Database Management
   - Allows managing databases and Logs through simple CLI commands ie `CURDL`.
   - Supports connecting to multiple database types and systems.
