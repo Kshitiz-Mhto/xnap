@@ -14,7 +14,7 @@
 - **Scheduled Restore**: Create Restores for databases and local files on a schedule.
 - **Versioning Backups**: Provide custom versioning for backup local files.
 
-## 2. Encryption/Decryption and Compression/Decompression
+### 2. Encryption/Decryption and Compression/Decompression
 - **Security**: Uses AES for cryptographic securitry
 - **Compression/Decompression**: Uses zip or tar for compression and decompression internally
 
