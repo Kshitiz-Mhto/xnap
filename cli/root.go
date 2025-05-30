@@ -21,6 +21,7 @@ import (
 	"os"
 
 	"github.com/Kshitiz-Mhto/xnap/cli/cloud"
+	"github.com/Kshitiz-Mhto/xnap/cli/crypto"
 	"github.com/Kshitiz-Mhto/xnap/cli/database"
 	"github.com/Kshitiz-Mhto/xnap/cli/local"
 	"github.com/spf13/cobra"
@@ -58,6 +59,8 @@ func init() {
 	rootCmd.AddCommand(database.DBCmd)
 	rootCmd.AddCommand(cloud.CloudSyncCmd)
 	rootCmd.AddCommand(local.LocalCMD)
+	rootCmd.AddCommand(crypto.CRYPTOgen)
+	rootCmd.AddCommand(crypto.CRYPTOdecrypt)
 
 	rootCmd.Flags().BoolVarP(&version, "version", "v", false, "Print the version of the CLI")
 }
