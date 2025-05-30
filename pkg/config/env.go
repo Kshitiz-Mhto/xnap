@@ -27,6 +27,10 @@ type Config struct {
 	XNAP_LOGS_TABLE          string
 	XNAP_BACKUP_TABLE        string
 	BACKUP_OR_RESTORE_STATUS string
+
+	AES_KEY_SIZE string
+	KEY_LOCATION string
+	KEY_FILE     string
 }
 
 var Envs = initConfig()
@@ -51,6 +55,9 @@ func initConfig() Config {
 		OWNER_EMAIL:              getEnv("OWNER_EMAIL", ""),
 		XNAP_LOGS_TABLE:          getEnv("XNAP_LOGS_TABLE", "logs"),
 		XNAP_BACKUP_TABLE:        getEnv("XNAP_BACKUP_TABLE", "backups"),
+		AES_KEY_SIZE:             getEnv("AES_KEY_SIZE", "32"),
+		KEY_LOCATION:             getEnv("KEY_LOCATION", ".xnap"),
+		KEY_FILE:                 getEnv("KEY_FILE", "key"),
 	}
 }
 
