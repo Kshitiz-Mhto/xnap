@@ -2,7 +2,11 @@ package database
 
 import (
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -10,12 +14,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kshitiz-Mhto/xnap/utility"
-	"github.com/Kshitiz-Mhto/xnap/utility/common"
 	"github.com/spf13/cobra"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"github.com/Kshitiz-Mhto/xnap/cli/crypto"
+	"github.com/Kshitiz-Mhto/xnap/utility"
+	"github.com/Kshitiz-Mhto/xnap/utility/common"
 )
 
 var (
@@ -24,12 +30,13 @@ var (
 	noData             bool
 	noCreateInfo       bool
 	WG                 sync.WaitGroup
+	isEncrypt          bool
 )
 
 var dbBackupCreateCmd = &cobra.Command{
 	Use:     "create",
 	Aliases: []string{"new", "add"},
-	Example: "xnap db backup create <db-name> --type <db-type> --user <db_user> --password --name <backup-filename> --path <path/to/> --schedule <schedule_HH:MM> --no-data --no-create-info",
+	Example: "xnap db backup create <db-name> --type <db-type> --user <db_user> --password --name <backup-filename> --path <path/to/> --schedule <schedule_HH:MM> --no-data --no-create-info --encrypt",
 	Short:   "Create a new database backup",
 	Args:    cobra.ExactArgs(1),
 	Run:     dbCreateDatabaseBackup,
@@ -41,6 +48,7 @@ func dbCreateDatabaseBackup(cmd *cobra.Command, args []string) {
 	backupFileNamePath, _ = cmd.Flags().GetString("path")
 	noData, _ = cmd.Flags().GetBool("no-data")
 	noCreateInfo, _ = cmd.Flags().GetBool("no-create-info")
+	isEncrypt, _ = cmd.Flags().GetBool("encrypt")
 	start = time.Now()
 	command = strings.Join(os.Args, " ")
 	status = "success"
@@ -265,13 +273,35 @@ func performMySQLDatabaseBackup(databaseName, _ string) {
 
 	backupFile.WriteString(fmt.Sprintf("/*  --Dump file generated at %s-- */\n", time.Now().Format(time.RFC1123)))
 
+	backupFile.Close()
+
+	if isEncrypt {
+		utility.Info("Encrypting backup file...")
+		err := encryptFile(backupFullFilePath)
+		if err != nil {
+			utility.Error("Error encrypting backup file: %v", err)
+			duration = time.Since(start).Seconds()
+			SetFailureStatus(err.Error())
+			err = LogCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
+			if err != nil {
+				utility.Error("Error logging backup command: %v", err)
+			}
+			os.Exit(1)
+		}
+		utility.Success("Backup file encrypted successfully.")
+	}
+
 	duration = time.Since(start).Seconds()
 	err = LogCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
 	if err != nil {
 		utility.Error("Error logging backup command: %v", err)
 	}
 
-	utility.Success("Backup completed successfully. File saved at: %s", utility.Yellow(backupFullFilePath))
+	if isEncrypt {
+		utility.Success("Encrypted backup completed successfully. File saved at: %s", utility.Yellow(backupFullFilePath+".xnap"))
+	} else {
+		utility.Success("Backup completed successfully. File saved at: %s", utility.Yellow(backupFullFilePath))
+	}
 }
 
 func performMyPSQLDatabaseBackup(databaseName, _ string) {
@@ -349,7 +379,7 @@ func performMyPSQLDatabaseBackup(databaseName, _ string) {
 				SELECT 'CREATE TABLE ' || relname || E'\n(\n' ||
 				array_to_string(
 					array_agg(
-						'    ' || column_name || ' ' || type_name || 
+						'    ' || column_name || ' ' || type_name ||
 						CASE WHEN is_nullable THEN ' NULL' ELSE ' NOT NULL' END
 					), E',\n'
 				) || E'\n);\n'
@@ -458,13 +488,35 @@ func performMyPSQLDatabaseBackup(databaseName, _ string) {
 
 	backupFile.WriteString("\n-- PostgreSQL database dump complete\n")
 
+	backupFile.Close()
+
+	if isEncrypt {
+		utility.Info("Encrypting backup file...")
+		err := encryptFile(backupFullFilePath)
+		if err != nil {
+			utility.Error("Error encrypting backup file: %v", err)
+			duration = time.Since(start).Seconds()
+			SetFailureStatus(err.Error())
+			err = LogCommand(dbType, dbUser, dbPassword, MySQL_DB_HOST, MySQL_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
+			if err != nil {
+				utility.Error("Error logging backup command: %v", err)
+			}
+			os.Exit(1)
+		}
+		utility.Success("Backup file encrypted successfully.")
+	}
+
 	duration = time.Since(start).Seconds()
 	err = LogCommand(dbType, dbUser, dbPassword, POSTGRES_DB_HOST, POSTGRES_DB_PORT, "backup", command, status, errorMessage, dbUser, duration)
 	if err != nil {
 		utility.Error("Error logging backup command: %v", err)
 	}
 
-	utility.Success("Backup completed successfully. File saved at: %s", utility.Yellow(backupFullFilePath))
+	if isEncrypt {
+		utility.Success("Encrypted backup completed successfully. File saved at: %s", utility.Yellow(backupFullFilePath+".xnap"))
+	} else {
+		utility.Success("Backup completed successfully. File saved at: %s", utility.Yellow(backupFullFilePath))
+	}
 }
 
 func scheduleDatabaseBackup(databaseName, schedule string) {
@@ -518,4 +570,59 @@ func scheduleDatabaseBackup(databaseName, schedule string) {
 	case <-ctx.Done():
 		utility.Info("Backup process was canceled.")
 	}
+}
+
+// encryptFile encrypts the backup file using AES encryption
+func encryptFile(filePath string) error {
+	// Load the AES key from the keys file
+	key, err := crypto.LoadAESKey()
+	if err != nil {
+		return fmt.Errorf("failed to load AES key: %v", err)
+	}
+
+	// Read the original file
+	plaintext, err := os.ReadFile(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to read backup file: %v", err)
+	}
+
+	// Create AES cipher
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return fmt.Errorf("failed to create AES cipher: %v", err)
+	}
+
+	// Create GCM mode
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return fmt.Errorf("failed to create GCM: %v", err)
+	}
+
+	// Generate a random nonce
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		return fmt.Errorf("failed to generate nonce: %v", err)
+	}
+
+	// Encrypt the data
+	ciphertext := gcm.Seal(nonce, nonce, plaintext, nil)
+
+	// Create encrypted file path
+	encryptedFilePath := filePath + ".xnap"
+
+	// Write encrypted data to file
+	err = os.WriteFile(encryptedFilePath, ciphertext, 0600)
+	if err != nil {
+		return fmt.Errorf("failed to write encrypted file: %v", err)
+	}
+
+	// Remove the original unencrypted file
+	err = os.Remove(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to remove original file: %v", err)
+	}
+
+	// backupFullFilePath = encryptedFilePath
+
+	return nil
 }
